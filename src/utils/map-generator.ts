@@ -184,9 +184,27 @@ export const generateMap = (width = 32, height = 32): GameMap => {
 	// Add some walls around the edges, but not at entry/exit points
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			if ((y === 0 || y === height - 1 || x === 0 || x === width - 1) &&
-				tiles[y][x].type !== 'entry' && tiles[y][x].type !== 'exit') {
-				tiles[y][x] = generateTile('wall', 'Border wall');
+			if ((y === 0 || y === height - 1 || x === 0 || x === width - 1)) {
+				if (y === mainPathPoints[0].y && x === mainPathPoints[0].x) {
+					console.log('Entry', {
+						x, y,
+						tile: tiles[y][x],
+					});
+					tiles[y][x] = generateTile('entry', 'The entrance');
+				} else if (y === mainPathPoints[1].y && x === mainPathPoints[1].x) {
+					console.log('Exit', {
+						x, y,
+						tile: tiles[y][x],
+					});
+					tiles[y][x] = generateTile('exit', 'The way forward');
+				} else if (tiles[y][x].type === 'exit') {
+					console.log('Exit', {
+						x, y,
+						tile: tiles[y][x],
+					});
+				} else {
+					tiles[y][x] = generateTile('wall', 'Border wall');
+				}
 			}
 		}
 	}

@@ -17,13 +17,14 @@ interface GameStore extends GameState {
 	regenerateMap: (width?: number, height?: number) => void;
 }
 
-const DEFAULT_MAP_SIZE = window.innerWidth < 768 ? 20 : 30;
+const DEFAULT_MAP_WIDTH = window.innerWidth < 768 ? 20 : 40;
+const DEFAULT_MAP_HEIGHT = window.innerWidth < 768 ? 20 : 30;
 
 const initialState: GameState = {
 	characters: [],
 	currentTurn: '',
 	gameMap: {
-		...generateMap(DEFAULT_MAP_SIZE, DEFAULT_MAP_SIZE)
+		...generateMap(DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT)
 	},
 	messages: [],
 };

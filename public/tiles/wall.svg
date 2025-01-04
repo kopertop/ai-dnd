@@ -1,7 +1,16 @@
 <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-	<rect width="32" height="32" fill="#666"/>
-	<rect x="0" y="8" width="32" height="2" fill="#555"/>
-	<rect x="0" y="24" width="32" height="2" fill="#555"/>
-	<rect x="8" y="0" width="2" height="32" fill="#555"/>
-	<rect x="24" y="0" width="2" height="32" fill="#555"/>
+	<defs>
+		<linearGradient id="rockGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+			<stop offset="0%" style="stop-color:#4a4a4a"/>
+			<stop offset="50%" style="stop-color:#666666"/>
+			<stop offset="100%" style="stop-color:#333333"/>
+		</linearGradient>
+	</defs>
+	<rect width="32" height="32" fill="url(#rockGradient)"/>
+	<path d="M0,32 L8,24 L16,8 L24,24 L32,32" fill="#333333"/>
+	<path d="M0,0 L8,8 L16,24 L24,8 L32,0" fill="#4a4a4a"/>
+	<path d="M8,16 L16,4 L24,16"
+		stroke="#555555"
+		fill="none"
+		stroke-width="1.5"/>
 </svg>

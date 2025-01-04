@@ -31,7 +31,11 @@ const loadImages = () => {
 					console.error(`Error loading image for ${type}`);
 					reject(new Error(`Error loading image for ${type}`));
 				};
-				img.src = `/tiles/${type}.svg`;
+				if (type === 'wall') {
+					img.src = `/tiles/${type}.png`;
+				} else {
+					img.src = `/tiles/${type}.svg`;
+				}
 			});
 		})
 	);
@@ -94,6 +98,7 @@ export const GameMap: React.FC = () => {
 		// Clear canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+		console.log('Game Map Tiles', gameMap.tiles);
 		// Draw map
 		gameMap.tiles.forEach((row, y) => {
 			row.forEach((tile, x) => {
