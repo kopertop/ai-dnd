@@ -3,7 +3,7 @@ import { Box } from '@chakra-ui/react';
 import { useGameStore } from '../stores/gameStore';
 import { MapTile } from '../schemas/game';
 
-const TILE_SIZE = 32;
+const TILE_SIZE = 64;
 
 export const GameMap: React.FC = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
