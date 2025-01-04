@@ -1,13 +1,54 @@
-import React, { useEffect, useRef } from 'react';
-import { Box } from '@chakra-ui/react';
-import { useGameStore } from '../stores/gameStore';
-import { MapTile } from '../schemas/game';
+import React, { useEffect, useRef, useState } from 'react';
+import { Box, Center } from '@chakra-ui/react';
+import { useGameStore } from '@/stores/game-store';
+import { MapTile } from '@/schemas/game';
 
-const TILE_SIZE = 64;
+const TILE_SIZE = 32;
+const tileImages: Record<MapTile['type'], HTMLImageElement> = {
+	mountain: new Image(),
+	wall: new Image(),
+	water: new Image(),
+	cave: new Image(),
+	entry: new Image(),
+	exit: new Image(),
+	path: new Image(),
+	grass: new Image(),
+};
+
+// Initialize and load images
+const loadImages = () => {
+	const tileTypes: MapTile['type'][] = Object.keys(tileImages) as MapTile['type'][];
+
+	return Promise.all(
+		tileTypes.map((type) => {
+			return new Promise<void>((resolve, reject) => {
+				const img = tileImages[type];
+				img.onload = () => {
+					tileImages[type] = img;
+					resolve();
+				};
+				img.onerror = () => {
+					console.error(`Error loading image for ${type}`);
+					reject(new Error(`Error loading image for ${type}`));
+				};
+				img.src = `/tiles/${type}.svg`;
+			});
+		})
+	);
+};
 
 export const GameMap: React.FC = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const { gameMap, characters } = useGameStore();
+	const [imagesLoaded, setImagesLoaded] = useState(false);
+
+	useEffect(() => {
+		console.log('Loading images');
+		loadImages().then(() => {
+			console.log('Images loaded');
+			setImagesLoaded(true);
+		});
+	}, []);
 
 	const drawTile = (
 		ctx: CanvasRenderingContext2D,
@@ -15,14 +56,35 @@ export const GameMap: React.FC = () => {
 		x: number,
 		y: number
 	) => {
-		ctx.fillStyle = tile.type === 'wall' ? '#666'
-			: tile.type === 'floor' ? '#fff'
+		const img = tileImages[tile.type];
+		if (img.complete) {
+			ctx.drawImage(img, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		} else {
+			// Fallback colors while images load
+			ctx.fillStyle = tile.type === 'wall' ? '#666'
+				: tile.type === 'mountain' ? '#8B4513'
 				: tile.type === 'water' ? '#44f'
-					: '#964B00';
-		ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+				: tile.type === 'grass' ? '#90EE90'
+				: '#964B00';
+			ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+		}
+
+		// Add path indicator
+		if (tile.description?.includes('well-worn path')) {
+			ctx.globalAlpha = 0.5;
+			ctx.fillStyle = '#D2B48C';
+			ctx.fillRect(
+				x * TILE_SIZE + TILE_SIZE * 0.2,
+				y * TILE_SIZE + TILE_SIZE * 0.2,
+				TILE_SIZE * 0.6,
+				TILE_SIZE * 0.6
+			);
+			ctx.globalAlpha = 1;
+		}
 	};
 
 	useEffect(() => {
+		if (!imagesLoaded) return;
 		const canvas = canvasRef.current;
 		if (!canvas) return;
 
@@ -52,16 +114,18 @@ export const GameMap: React.FC = () => {
 			);
 			ctx.fill();
 		});
-	}, [gameMap, characters]);
+	}, [gameMap, characters, imagesLoaded]);
 
 	return (
 		<Box border="1px solid" borderColor="gray.200" borderRadius="md" p={2}>
-			<canvas
-				ref={canvasRef}
-				width={gameMap.width * TILE_SIZE}
-				height={gameMap.height * TILE_SIZE}
-				style={{ background: '#000' }}
-			/>
+			<Center>
+				<canvas
+					ref={canvasRef}
+					width={gameMap.width * TILE_SIZE}
+					height={gameMap.height * TILE_SIZE}
+					style={{ background: '#000' }}
+				/>
+			</Center>
 		</Box>
 	);
 };

@@ -21,7 +21,7 @@ export const CharacterStatsSchema = z.object({
 });
 
 export const MapTileSchema = z.object({
-	type: z.enum(['floor', 'wall', 'door', 'water']),
+	type: z.enum(['mountain', 'wall', 'water', 'cave', 'entry', 'exit', 'path', 'grass']),
 	walkable: z.boolean(),
 	description: z.string().optional(),
 });

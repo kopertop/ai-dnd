@@ -6,7 +6,7 @@ import {
 	VStack,
 	Text,
 } from '@chakra-ui/react';
-import { useGameStore } from '../stores/gameStore';
+import { useGameStore } from '../stores/game-store';
 import { GameMessageSchema } from '../schemas/game';
 
 export const ChatInterface: React.FC = () => {

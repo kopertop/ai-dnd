@@ -1,0 +1,24 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+	<!-- Base dirt color -->
+	<rect width="32" height="32" fill="#8B7355"/>
+
+	<!-- Path texture - darker patches -->
+	<path d="M0 0 Q16 2 32 0 Q30 16 32 32 Q16 30 0 32 Q2 16 0 0"
+		fill="#7A624A" opacity="0.3"/>
+
+	<!-- Small stones and details -->
+	<circle cx="8" cy="8" r="1.5" fill="#9B8365"/>
+	<circle cx="24" cy="24" r="2" fill="#9B8365"/>
+	<circle cx="16" cy="20" r="1" fill="#9B8365"/>
+	<circle cx="28" cy="12" r="1" fill="#9B8365"/>
+	<circle cx="4" cy="28" r="1.5" fill="#9B8365"/>
+
+	<!-- Footprint-like impressions -->
+	<path d="M12 8 Q14 10 16 8" stroke="#695D47" fill="none" opacity="0.5"/>
+	<path d="M20 24 Q22 26 24 24" stroke="#695D47" fill="none" opacity="0.5"/>
+	<path d="M4 16 Q6 18 8 16" stroke="#695D47" fill="none" opacity="0.5"/>
+
+	<!-- Edge highlights -->
+	<path d="M0 0 L32 0" stroke="#9B8365" stroke-width="0.5" opacity="0.3"/>
+	<path d="M0 32 L32 32" stroke="#695D47" stroke-width="0.5" opacity="0.3"/>
+</svg>

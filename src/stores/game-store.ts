@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
+import { generateMap } from '../utils/map-generator';
 import {
 	GameState,
 	GameStateSchema,
@@ -13,17 +14,16 @@ interface GameStore extends GameState {
 	moveCharacter: (characterId: string, x: number, y: number) => void;
 	addCharacter: (character: Character) => void;
 	removeCharacter: (characterId: string) => void;
+	regenerateMap: (width?: number, height?: number) => void;
 }
+
+const DEFAULT_MAP_SIZE = window.innerWidth < 768 ? 20 : 30;
 
 const initialState: GameState = {
 	characters: [],
 	currentTurn: '',
 	gameMap: {
-		id: '1',
-		tiles: [],
-		width: 20,
-		height: 20,
-		name: 'Default Map',
+		...generateMap(DEFAULT_MAP_SIZE, DEFAULT_MAP_SIZE)
 	},
 	messages: [],
 };
@@ -75,6 +75,15 @@ export const useGameStore = create<GameStore>()(
 			removeCharacter: (characterId: string) =>
 				set((state) => ({
 					characters: state.characters.filter((char) => char.id !== characterId),
+				})),
+
+			regenerateMap: (width?: number, height?: number) =>
+				set((state) => ({
+					gameMap: generateMap(width || state.gameMap.width, height || state.gameMap.height),
+					characters: state.characters.map(char => ({
+						...char,
+						position: { x: 1, y: 1 } // Reset characters to safe starting position
+					}))
 				})),
 		}),
 		{ name: 'game-store' }
