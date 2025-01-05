@@ -22,7 +22,6 @@ type CampaignFormData = {
 
 export const CreateCampaign: React.FC<CreateCampaignProps> = ({ onComplete }) => {
 	const { createCampaign } = useGameStore();
-	const [showAddCharacter, setShowAddCharacter] = useState(false);
 	const [showSuccess, setShowSuccess] = useState(false);
 
 	const {
@@ -39,11 +38,10 @@ export const CreateCampaign: React.FC<CreateCampaignProps> = ({ onComplete }) =>
 		createCampaign({
 			...data,
 			dmId: 'current-user',
-			characters: [],
+			characters: {},
 		});
 		setShowSuccess(true);
 		setTimeout(() => setShowSuccess(false), 3000);
-		setShowAddCharacter(true);
 	};
 
 	return (
@@ -54,55 +52,41 @@ export const CreateCampaign: React.FC<CreateCampaignProps> = ({ onComplete }) =>
 				</Alert>
 			)}
 
-			{!showAddCharacter ? (
-				<Form onSubmit={handleSubmit(onSubmit)}>
-					<Stack gap={3}>
-						<Form.Group>
-							<Form.Label>Campaign Name</Form.Label>
-							<Form.Control
-								{...register('name')}
-								isInvalid={!!errors.name}
-							/>
-							{errors.name && (
-								<Form.Control.Feedback type="invalid">
-									{errors.name.message}
-								</Form.Control.Feedback>
-							)}
-						</Form.Group>
+			<Form onSubmit={handleSubmit(onSubmit)}>
+				<Stack gap={3}>
+					<Form.Group>
+						<Form.Label>Campaign Name</Form.Label>
+						<Form.Control
+							{...register('name')}
+							isInvalid={!!errors.name}
+						/>
+						{errors.name && (
+							<Form.Control.Feedback type="invalid">
+								{errors.name.message}
+							</Form.Control.Feedback>
+						)}
+					</Form.Group>
 
-						<Form.Group>
-							<Form.Label>Description</Form.Label>
-							<Form.Control
-								as="textarea"
-								rows={3}
-								{...register('description')}
-								isInvalid={!!errors.description}
-							/>
-							{errors.description && (
-								<Form.Control.Feedback type="invalid">
-									{errors.description.message}
-								</Form.Control.Feedback>
-							)}
-						</Form.Group>
+					<Form.Group>
+						<Form.Label>Description</Form.Label>
+						<Form.Control
+							as="textarea"
+							rows={3}
+							{...register('description')}
+							isInvalid={!!errors.description}
+						/>
+						{errors.description && (
+							<Form.Control.Feedback type="invalid">
+								{errors.description.message}
+							</Form.Control.Feedback>
+						)}
+					</Form.Group>
 
-						<Button type="submit" variant="primary">
-							Create Campaign
-						</Button>
-					</Stack>
-				</Form>
-			) : (
-				<>
-					<h4>Add Characters to Campaign</h4>
-					<p className="text-muted">
-						Add at least one character to begin your campaign
-					</p>
-					<hr />
-					<CreateCharacter onComplete={onComplete} />
-					<Button variant="link" onClick={onComplete}>
-						Skip for now
+					<Button type="submit" variant="primary">
+						Create Campaign
 					</Button>
-				</>
-			)}
+				</Stack>
+			</Form>
 		</Stack>
 	);
 };

@@ -13,6 +13,7 @@ interface GameStore extends GameState {
 	deleteCampaign: (id: string) => void;
 	exitCampaign: () => void;
 	syncWithRemote: () => Promise<void>;
+	sendMessage: (message: string) => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -42,21 +43,19 @@ export const useGameStore = create<GameStore>()(
 				const campaign = get().campaigns.find((c) => c.id === id);
 				if (!campaign) return;
 
-				// Update last played timestamp
+				// Load associated characters
+				const campaignCharacters = get().characters.filter((c) =>
+					campaign.characters[c.id] !== undefined
+				).map(char => ({
+					...char,
+					controlType: campaign.characters[char.id] || 'user'
+				}));
+
 				set((state) => ({
 					campaigns: state.campaigns.map((c) =>
 						c.id === id ? { ...c, lastPlayed: Date.now() } : c
 					),
 					currentCampaign: campaign,
-					gameMap: generateMap(),
-					messages: [],
-				}));
-
-				// Load associated characters
-				const campaignCharacters = get().characters.filter((c) =>
-					campaign.characters.includes(c.id)
-				);
-				set(() => ({
 					characters: campaignCharacters,
 					currentTurn: campaignCharacters[0]?.id || '',
 					gameMap: generateMap(),
@@ -94,6 +93,10 @@ export const useGameStore = create<GameStore>()(
 			syncWithRemote: async () => {
 				// TODO: Implement remote sync
 				console.log('Syncing with remote database...');
+			},
+
+			sendMessage: (message) => {
+				console.log('Sending message', message);
 			},
 		}),
 		{

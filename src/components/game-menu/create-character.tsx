@@ -208,27 +208,6 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 					</Col>
 				</Row>
 
-				<Form.Group>
-					<Form.Label>Character Control</Form.Label>
-					<div>
-						<Form.Check
-							type="radio"
-							label="User Controlled"
-							value="user"
-							{...register('controlType')}
-							inline
-							defaultChecked
-						/>
-						<Form.Check
-							type="radio"
-							label="AI Controlled"
-							value="ai"
-							{...register('controlType')}
-							inline
-						/>
-					</div>
-				</Form.Group>
-
 				<div>
 					<div className="d-flex justify-content-between align-items-center mb-3">
 						<Form.Label className="mb-0">Ability Scores</Form.Label>

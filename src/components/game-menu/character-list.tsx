@@ -27,7 +27,10 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 	const handleCharacterAction = (character: Character) => {
 		if (campaign) {
 			updateCampaign(campaign.id, {
-				characters: [...campaign.characters, character.id],
+				characters: {
+					...campaign.characters,
+					[character.id]: 'ai',
+				},
 			});
 			onCharacterSelect?.(character);
 		} else {
@@ -36,7 +39,11 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 	};
 
 	const isCharacterInCampaign = (character: Character) => {
-		return campaign?.characters.includes(character.id);
+		return campaign?.characters[character.id] !== undefined;
+	};
+
+	const getCharacterControl = (character: Character) => {
+		return campaign?.characters[character.id];
 	};
 
 	if (characters.length === 0) {
@@ -54,6 +61,7 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 		<Stack gap={3}>
 			{characters.map((character) => {
 				const inCampaign = isCharacterInCampaign(character);
+				const controlType = getCharacterControl(character);
 
 				return (
 					<Card key={character.id} className="shadow-sm">
@@ -73,9 +81,11 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 											Level {character.level} {character.race} {character.class}
 										</small>
 									</div>
-									<Badge bg={character.controlType === 'user' ? 'primary' : 'secondary'}>
-										{character.controlType === 'user' ? 'Player' : 'AI'}
-									</Badge>
+									{controlType && (
+										<Badge bg={controlType === 'user' ? 'primary' : 'secondary'}>
+											{controlType === 'user' ? 'Player' : 'AI'}
+										</Badge>
+									)}
 								</div>
 
 								<Row xs={2} className="g-2 text-muted small">

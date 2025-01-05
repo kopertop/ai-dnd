@@ -38,10 +38,10 @@ export const LoadCampaign: React.FC<LoadCampaignProps> = ({ onComplete }) => {
 	return (
 		<Stack gap={3}>
 			{campaigns.map((campaign) => {
-				const characters = getCharactersByIds(campaign.characters);
+				const characters = getCharactersByIds(Object.keys(campaign.characters));
 				const lastPlayed = new Date(campaign.lastPlayed).toLocaleDateString();
-				const userCharacters = characters.filter(c => c.controlType === 'user').length;
-				const aiCharacters = characters.filter(c => c.controlType === 'ai').length;
+				const userCharacters = characters.filter(c => campaign.characters[c.id] === 'user').length;
+				const aiCharacters = characters.filter(c => campaign.characters[c.id] === 'ai').length;
 
 				return (
 					<Card key={campaign.id} className="shadow-sm">

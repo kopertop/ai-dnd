@@ -55,7 +55,7 @@ export const GameInterface: React.FC = () => {
 				</Navbar.Collapse>
 			</Navbar>
 
-			<Container style={{ marginTop: '72px' }}>
+			<Container fluid style={{ marginTop: '72px' }}>
 				<Row className="g-4">
 					<Col lg={9} md={12}>
 						<GameMap />

@@ -40,10 +40,11 @@ export const CampaignList: React.FC<{ onCampaignSelect: (campaign: Campaign) => 
 	return (
 		<Stack gap={3}>
 			{campaigns.map((campaign) => {
-				const characters = getCharactersByIds(campaign.characters);
+				const characterIds = Object.keys(campaign.characters);
+				const characters = getCharactersByIds(characterIds);
 				const lastPlayed = new Date(campaign.lastPlayed).toLocaleDateString();
-				const userCharacters = characters.filter(c => c.controlType === 'user').length;
-				const aiCharacters = characters.filter(c => c.controlType === 'ai').length;
+				const userCharacters = characterIds.filter(id => campaign.characters[id] === 'user').length;
+				const aiCharacters = characterIds.filter(id => campaign.characters[id] === 'ai').length;
 				const isActive = currentCampaign?.id === campaign.id;
 
 				return (
