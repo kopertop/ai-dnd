@@ -6,11 +6,14 @@ import {
 	Badge,
 	Row,
 	Col,
+	ToggleButton,
 } from 'react-bootstrap';
 import { useCharacterStore } from '@/stores/character-store';
 import { useGameStore } from '@/stores/game-store';
 import { Campaign } from '@/schemas/menu';
 import { Character } from '@/schemas/game';
+import { LuUser, LuBrain } from 'react-icons/lu';
+import { CharacterImage } from '@/components/shared/character-image';
 
 interface CharacterListProps {
 	campaign?: Campaign;
@@ -38,12 +41,24 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 		}
 	};
 
+	const toggleControlType = (characterId: string) => {
+		if (!campaign) return;
+
+		const currentType = campaign.characters[characterId];
+		updateCampaign(campaign.id, {
+			characters: {
+				...campaign.characters,
+				[characterId]: currentType === 'user' ? 'ai' : 'user',
+			},
+		});
+	};
+
 	const isCharacterInCampaign = (character: Character) => {
 		return campaign?.characters[character.id] !== undefined;
 	};
 
 	const getCharacterControl = (character: Character) => {
-		return campaign?.characters[character.id];
+		return campaign?.characters[character.id] || 'user';
 	};
 
 	if (characters.length === 0) {
@@ -67,7 +82,8 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 					<Card key={character.id} className="shadow-sm">
 						<Card.Body>
 							<Stack gap={3}>
-								<div className="d-flex justify-content-between align-items-start">
+								<div className="d-flex align-items-center gap-3">
+									<CharacterImage character={character} />
 									<div>
 										<h5 className="mb-0">
 											{character.name}
@@ -81,10 +97,28 @@ export const CharacterList: React.FC<CharacterListProps> = ({
 											Level {character.level} {character.race} {character.class}
 										</small>
 									</div>
-									{controlType && (
-										<Badge bg={controlType === 'user' ? 'primary' : 'secondary'}>
-											{controlType === 'user' ? 'Player' : 'AI'}
-										</Badge>
+									{inCampaign && (
+										<ToggleButton
+											id={`control-type-${character.id}`}
+											type="checkbox"
+											variant={controlType === 'user' ? 'outline-primary' : 'outline-secondary'}
+											checked={controlType === 'user'}
+											value="1"
+											onChange={() => toggleControlType(character.id)}
+											size="sm"
+										>
+											{controlType === 'user' ? (
+												<>
+													<LuUser className="me-2" />
+													Player
+												</>
+											) : (
+												<>
+													<LuBrain className="me-2" />
+													AI
+												</>
+											)}
+										</ToggleButton>
 									)}
 								</div>
 

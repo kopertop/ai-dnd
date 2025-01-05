@@ -32,6 +32,7 @@ export const GameMessageSchema = z.object({
 export const CharacterSchema = z.object({
 	id: z.string(),
 	name: z.string(),
+	imageUrl: z.string().optional(),
 	position: PositionSchema,
 	type: z.enum(['player', 'npc', 'ai']),
 	controlType: z.enum(['user', 'ai']),
