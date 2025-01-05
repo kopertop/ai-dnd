@@ -20,13 +20,14 @@ export const AIChatInterface: React.FC = () => {
 	const { currentCampaign, updateCampaign } = useGameStore();
 	const { getCharactersByIds, updateCharacter } = useCharacterStore();
 
-	// Get the user's active character
-	const userCharacterId = currentCampaign ?
-		Object.entries(currentCampaign.characters)
-			.find(([_, type]) => type === 'user')?.[0]
-		: undefined;
+	if (!currentCampaign) {
+		return <div>No campaign found</div>;
+	}
 
-	const allCharacters = getCharactersByIds(Object.keys(currentCampaign?.characters || {})).map((c) => ({
+	// Get the user's active character
+	const userCharacterId = Object.entries(currentCampaign.characters).find(([_, type]) => type === 'user')?.[0]
+
+	const allCharacters = getCharactersByIds(Object.keys(currentCampaign.characters || {})).map((c) => ({
 		...c,
 		control: currentCampaign?.characters[c.id],
 	}));
@@ -47,7 +48,11 @@ export const AIChatInterface: React.FC = () => {
 		initialMessages: currentCampaign?.messages?.length ? currentCampaign.messages : [{
 			id: 'system-1',
 			role: 'system',
-			content: getDMPrompt(allCharacters, currentCampaign?.inventory || []),
+			content: getDMPrompt({
+				campaign: currentCampaign,
+				characters: allCharacters,
+				inventory: currentCampaign.inventory || [],
+			}),
 		}],
 		onResponse: (response) => {
 			if (!response.ok) {
@@ -74,11 +79,14 @@ export const AIChatInterface: React.FC = () => {
 				}
 			}
 
+			/*
 			if (currentCampaign?.id) {
+				console.log('Finished, updating campaign with new messages', [...messages, message]);
 				updateCampaign(currentCampaign.id, {
-					messages: messages.concat(message),
+					messages: [...messages, message],
 				});
 			}
+			*/
 		},
 		body: {
 			characterName: userCharacter?.name,
@@ -98,13 +106,13 @@ export const AIChatInterface: React.FC = () => {
 
 	useEffect(() => {
 		console.log('messages', messages);
-		if (currentCampaign?.id && messages?.length) {
+		if (currentCampaign?.id && messages?.length && !isLoading) {
 			console.log('Updating campaign with new messages', messages);
 			updateCampaign(currentCampaign.id, {
 				messages,
 			});
 		}
-	}, [messages]);
+	}, [messages, isLoading]);
 
 	return (
 		<Card
@@ -183,7 +191,11 @@ export const AIChatInterface: React.FC = () => {
 						setInput('');
 						append({
 							role: 'system',
-							content: getDMPrompt(allCharacters),
+							content: getDMPrompt({
+								campaign: currentCampaign,
+								characters: allCharacters,
+								inventory: currentCampaign.inventory || [],
+							}),
 						});
 					} else {
 						handleSubmit(e);

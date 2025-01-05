@@ -6,12 +6,13 @@ import {
 	Modal,
 } from 'react-bootstrap';
 import { CreateCampaign } from './create-campaign';
-import { LoadCampaign } from './load-campaign';
 import { CampaignList } from './campaign-list';
+import { useGameStore } from '@/stores/game-store';
 
 export const OpeningMenu: React.FC = () => {
 	const [showCreate, setShowCreate] = React.useState(false);
 	const [showLoad, setShowLoad] = React.useState(false);
+	const { loadCampaign } = useGameStore();
 
 	return (
 		<Card className="shadow-lg">
@@ -53,7 +54,10 @@ export const OpeningMenu: React.FC = () => {
 					<Modal.Title>Create New Campaign</Modal.Title>
 				</Modal.Header>
 				<Modal.Body className="p-4">
-					<CreateCampaign onComplete={() => setShowCreate(false)} />
+					<CreateCampaign onComplete={(campaign) => {
+						setShowCreate(false);
+						loadCampaign(campaign.id);
+					}} />
 				</Modal.Body>
 			</Modal>
 

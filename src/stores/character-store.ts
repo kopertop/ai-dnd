@@ -1,11 +1,12 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Character } from '@/schemas/character';
+import { addDefaultEquipment } from '@/utils/character-equipment';
 
 interface CharacterStore {
 	characters: Character[];
 	activeCharacter: Character | null;
-	createCharacter: (character: Omit<Character, 'id'>) => void;
+	createCharacter: (character: Omit<Character, 'id'>) => Character;
 	loadCharacter: (id: string) => void;
 	updateCharacter: (id: string, updates: Partial<Character>) => void;
 	deleteCharacter: (id: string) => void;
@@ -23,11 +24,18 @@ export const useCharacterStore = create<CharacterStore>()(
 				const character: Character = {
 					...characterData,
 					id: crypto.randomUUID(),
+					equipment: {},
 				};
+
+				// Add default equipment for this character
+				addDefaultEquipment(character);
+
+				// Save it to our data store
 				set((state) => ({
 					characters: [...state.characters, character],
 				}));
 				queueSync();
+				return character;
 			},
 
 			loadCharacter: (id) => {

@@ -1,10 +1,16 @@
+import { Campaign } from "@/schemas/campaign";
 import { Character } from "@/schemas/character";
 import { Item } from "@/schemas/item";
 
-export function getDMPrompt(
+export function getDMPrompt({
+	characters,
+	inventory,
+	campaign,
+}: {
+	campaign: Campaign,
 	characters?: (Character & { control?: 'user' | 'ai'})[],
 	inventory?: Item[],
-) {
+}) {
 	if (!characters?.length) {
 		return '';
 	}
@@ -36,6 +42,9 @@ The following characters are in the game:
 | Name | Class | Race | Level | Gender | HP | Max HP | STR | DEX | CON | INT | WIS | CHA |
 | ---- | ----- | ---- | ----- | ------ | -- | ------ | --- | --- | --- | --- | --- | --- |
 ${characterTable.join('\n')}
+
+The Campaign is titled "${campaign.name}" and the scenario is:
+${campaign.description || ''}
 
 Follow these guidelines:
 	1. Keep the game engaging and fun

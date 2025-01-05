@@ -8,18 +8,29 @@ import {
 	Modal,
 	ButtonGroup,
 } from 'react-bootstrap';
-import { GameMap } from './game-map';
 import { AIChatInterface } from './chat-interface';
 import { CreateCharacter } from './game-menu/create-character';
 import { CharacterList } from './game-menu/character-list';
 import { useGameStore } from '@/stores/game-store';
 import { LuUsers, LuUserPlus, LuLogOut } from 'react-icons/lu';
 import { CampaignCharacterList } from './game-menu/campaign-character-list';
+import { InventoryList } from './game-menu/inventory-list';
+import { OpeningMenu } from './game-menu/opening-menu';
+import { AddCharacters } from './game-menu/add-characters';
 
 export const GameInterface: React.FC = () => {
 	const { currentCampaign, exitCampaign } = useGameStore();
 	const [showCreateCharacter, setShowCreateCharacter] = useState(false);
 	const [showCharacterList, setShowCharacterList] = useState(false);
+	// If no campaign is loaded, show the opening menu
+	if (!currentCampaign) {
+		return <OpeningMenu />;
+	}
+
+	// If the campaign doesn't have any characters, show the Add Characters menu
+	if (!Object.keys(currentCampaign.characters).length) {
+		return <AddCharacters />;
+	}
 
 	return (
 		<Container fluid className="p-0">
@@ -59,15 +70,11 @@ export const GameInterface: React.FC = () => {
 				<Row className="g-4">
 					<Col xl={3} lg={4} md={12}>
 						<CampaignCharacterList campaign={currentCampaign || undefined}/>
+						<InventoryList campaign={currentCampaign || undefined} />
 					</Col>
 					<Col xl={9} lg={8} md={12}>
 						<AIChatInterface />
 					</Col>
-					{/*
-					<Col xl={6} lg={8} md={12}>
-						<GameMap />
-					</Col>
-					*/}
 				</Row>
 			</Container>
 

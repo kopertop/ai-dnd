@@ -22,7 +22,7 @@ const BASE_STAT = 8;
 const MAX_POINTS = 10;
 
 interface CreateCharacterProps {
-	onComplete?: () => void;
+	onComplete?: (character: Character) => void;
 }
 
 const STAT_DESCRIPTIONS = {
@@ -61,7 +61,7 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 		setValue,
 		formState: { errors, isValid },
 	} = useForm<CharacterFormData>({
-		resolver: zodResolver(CharacterSchema.omit({ id: true })),
+		resolver: zodResolver(CharacterSchema.omit({ id: true, equipment: true })),
 		mode: 'onChange',
 		defaultValues: {
 			type: 'player',
@@ -104,7 +104,7 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 	};
 
 	const onSubmit = (data: CharacterFormData) => {
-		createCharacter(data);
+		const character = createCharacter(data);
 		setShowSuccess(true);
 		setTimeout(() => {
 			setShowSuccess(false);
@@ -118,7 +118,7 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 				charisma: BASE_STAT,
 			});
 			setRemainingPoints(MAX_POINTS);
-			onComplete?.();
+			onComplete?.(character);
 		}, 2000);
 	};
 

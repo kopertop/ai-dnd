@@ -7,7 +7,7 @@ import { generateMap } from '@/utils/map-generator';
 interface GameStore extends GameState {
 	campaigns: Campaign[];
 	currentCampaign: Campaign | null;
-	createCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'lastPlayed'>) => void;
+	createCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'lastPlayed'>) => Campaign;
 	loadCampaign: (id: string) => void;
 	updateCampaign: (id: string, updates: Partial<Campaign>) => void;
 	deleteCampaign: (id: string) => void;
@@ -38,6 +38,7 @@ export const useGameStore = create<GameStore>()(
 					campaigns: [...state.campaigns, campaign],
 				}));
 				queueSync();
+				return campaign;
 			},
 
 			loadCampaign: (id) => {
