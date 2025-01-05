@@ -6,7 +6,7 @@ import {
 	Stack,
 } from 'react-bootstrap';
 import { useGameStore } from '@/stores/game-store';
-import { GameMessageSchema } from '@/schemas/game';
+import { GameMessageSchema, GameMessage } from '@/schemas/game';
 
 export const ChatInterface: React.FC = () => {
 	const [input, setInput] = useState('');
@@ -22,20 +22,41 @@ export const ChatInterface: React.FC = () => {
 	}, [messages]);
 
 	const handleSend = () => {
-		if (input.trim()) {
-			try {
-				sendMessage(input);
-				setInput('');
-			} catch (error) {
-				console.error('Failed to send message:', error);
-			}
+		if (!input.trim()) return;
+
+		try {
+			sendMessage(input);
+			setInput('');
+		} catch (error) {
+			console.error('Failed to send message:', error);
 		}
 	};
 
 	const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === 'Enter' && !e.shiftKey) {
 			e.preventDefault();
+
 			handleSend();
+		}
+	};
+
+	const renderMessage = (msg: GameMessage) => {
+		try {
+			GameMessageSchema.parse(msg);
+			const messageClass = msg.type === 'system'
+				? 'text-muted'
+				: msg.type === 'dm'
+					? 'text-danger'
+					: 'text-dark';
+
+			return (
+				<p key={msg.id} className={`mb-2 ${messageClass}`}>
+					<strong>{msg.sender}:</strong> {msg.content}
+				</p>
+			);
+		} catch (error) {
+			console.error('Invalid message format:', error);
+			return null;
 		}
 	};
 
@@ -51,25 +72,7 @@ export const ChatInterface: React.FC = () => {
 							overflowY: 'auto',
 						}}
 					>
-						{messages.map((msg) => {
-							try {
-								GameMessageSchema.parse(msg);
-								const messageClass = msg.type === 'system'
-									? 'text-muted'
-									: msg.type === 'dm'
-										? 'text-danger'
-										: 'text-dark';
-
-								return (
-									<p key={msg.id} className={`mb-2 ${messageClass}`}>
-										<strong>{msg.sender}:</strong> {msg.content}
-									</p>
-								);
-							} catch (error) {
-								console.error('Invalid message format:', error);
-								return null;
-							}
-						})}
+						{messages.map(renderMessage)}
 						<div ref={messagesEndRef} />
 					</div>
 
