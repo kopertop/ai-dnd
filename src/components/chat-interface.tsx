@@ -116,7 +116,7 @@ export const AIChatInterface: React.FC = () => {
 
 	return (
 		<Card
-			className={`shadow-sm h-100 d-flex flex-column ${isExpanded ? 'position-fixed top-0 start-0 w-100 h-100 z-3' : ''}`}
+			className={`p-0 shadow-sm h-100 d-flex flex-column ${isExpanded ? 'position-fixed top-0 start-0 w-100 h-100 z-3' : ''}`}
 			style={{
 				marginTop: isExpanded ? 75 : 0,
 				maxHeight: window.innerHeight - 100,

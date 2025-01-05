@@ -7,6 +7,7 @@ import {
 	Button,
 	Modal,
 	ButtonGroup,
+	Stack,
 } from 'react-bootstrap';
 import { AIChatInterface } from './chat-interface';
 import { CreateCharacter } from './game-menu/create-character';
@@ -79,11 +80,13 @@ export const GameInterface: React.FC = () => {
 				</Navbar.Collapse>
 			</Navbar>
 
-			<Container fluid style={{ marginTop: '72px' }}>
+			<Container fluid style={{ marginTop: '40px', paddingBottom: '2rem' }}>
 				<Row className="g-4">
 					<Col xl={3} lg={4} md={12}>
-						<CampaignCharacterList campaign={currentCampaign || undefined}/>
-						<InventoryList campaign={currentCampaign || undefined} />
+						<Stack gap={4}>
+							<CampaignCharacterList campaign={currentCampaign || undefined}/>
+							<InventoryList campaign={currentCampaign || undefined} />
+						</Stack>
 					</Col>
 					<Col xl={9} lg={8} md={12}>
 						<AIChatInterface />
