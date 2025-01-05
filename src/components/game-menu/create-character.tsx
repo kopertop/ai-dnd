@@ -11,6 +11,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CharacterSchema, Character, CharacterStats } from '@/schemas/game';
 import { useCharacterStore } from '@/stores/character-store';
+import { generateRandomCharacter } from '@/utils/character-generator';
+import { LuDices } from 'react-icons/lu';
 
 type CharacterFormData = Omit<Character, 'id'>;
 
@@ -120,9 +122,34 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 		}, 2000);
 	};
 
+	const handleRandomize = () => {
+		const race = RACES[Math.floor(Math.random() * RACES.length)];
+		const characterClass = CLASSES[Math.floor(Math.random() * CLASSES.length)];
+		const { name, stats: randomStats } = generateRandomCharacter(race, characterClass);
+
+		setValue('name', name);
+		setValue('race', race);
+		setValue('class', characterClass);
+		setValue('stats', randomStats);
+		setStats(randomStats);
+		setRemainingPoints(0);
+	};
+
 	return (
 		<Form onSubmit={handleSubmit(onSubmit)}>
 			<Stack gap={3}>
+				<div className="d-flex justify-content-end">
+					<Button
+						variant="outline-secondary"
+						size="sm"
+						onClick={handleRandomize}
+						title="Generate Random Character"
+					>
+						<LuDices className="me-2" />
+						Randomize
+					</Button>
+				</div>
+
 				{showSuccess && (
 					<Alert variant="success">
 						Character created successfully!
