@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
 	Stack,
 	Form,
@@ -12,10 +12,11 @@ import { useCharacterStore } from '@/stores/character-store';
 import { LuSend, LuExpand, LuShrink } from 'react-icons/lu';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getDMPrompt } from '@/prompts/dm';
 
 export const AIChatInterface: React.FC = () => {
 	const [isExpanded, setIsExpanded] = useState(false);
-	const { currentCampaign } = useGameStore();
+	const { currentCampaign, updateCampaign } = useGameStore();
 	const { getCharactersByIds } = useCharacterStore();
 
 	// Get the user's active character
@@ -24,30 +25,64 @@ export const AIChatInterface: React.FC = () => {
 			.find(([_, type]) => type === 'user')?.[0]
 		: undefined;
 
-	const userCharacter = userCharacterId ?
-		getCharactersByIds([userCharacterId])[0]
-		: undefined;
+	const allCharacters = getCharactersByIds(Object.keys(currentCampaign?.characters || {})).map((c) => ({
+		...c,
+		control: currentCampaign?.characters[c.id],
+	}));
+	const userCharacter = allCharacters.find(c => c.id === userCharacterId);
 
-	const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
+	const {
+		append,
+		messages,
+		setMessages,
+		input,
+		setInput,
+		handleInputChange,
+		handleSubmit,
+		isLoading,
+		error,
+	} = useChat({
 		api: '/api/chat',
-		initialMessages: currentCampaign?.messages?.map((msg) => ({
-			id: msg.id,
-			role: msg.role,
-			content: msg.content,
-			createdAt: new Date(msg.createdAt),
-		})) || [],
+		initialMessages: currentCampaign?.messages?.length ? currentCampaign.messages : [{
+			id: 'system-1',
+			role: 'system',
+			content: getDMPrompt(allCharacters),
+		}],
 		onResponse: (response) => {
 			if (!response.ok) {
 				throw new Error('Failed to send message');
 			}
 		},
-		onFinish: (response) => {
-			console.log(response, messages);
+		onFinish: (currentMessage) => {
+			console.log('onFinish', {
+				currentMessage,
+				currentCampaign,
+				messages,
+			});
 		},
 		body: {
 			characterName: userCharacter?.name,
 		},
 	});
+	useEffect(() => {
+		if (!currentCampaign?.messages?.filter(msg => msg.role !== 'system').length) {
+			console.log('No messages found, starting new campaign');
+			append({
+				role: 'user',
+				content: '_enters the game_',
+			});
+		}
+	}, [currentCampaign]);
+
+	useEffect(() => {
+		console.log('messages', messages);
+		if (currentCampaign?.id && messages?.length) {
+			console.log('Updating campaign with new messages', messages);
+			updateCampaign(currentCampaign.id, {
+				messages,
+			});
+		}
+	}, [messages]);
 
 	return (
 		<Card
@@ -72,7 +107,7 @@ export const AIChatInterface: React.FC = () => {
 			<Card.Body className="p-0 flex-grow-1 d-flex flex-column overflow-hidden">
 				<div className="flex-grow-1 overflow-y-auto p-3" style={{ minHeight: 0 }}>
 					<Stack gap={2}>
-						{messages.map((msg) => (
+						{messages.filter(msg => msg.role !== 'system').map((msg) => (
 							<div
 								key={msg.id}
 								className={`d-flex ${msg.role === 'user' ? 'justify-content-end' : ''}`}
@@ -89,24 +124,20 @@ export const AIChatInterface: React.FC = () => {
 									<div className="small text-opacity-75 mb-1">
 										{msg.role === 'assistant' ? 'DM' : userCharacter?.name || 'You'}
 									</div>
-									{msg.role === 'assistant' ? (
-										<ReactMarkdown
-											remarkPlugins={[remarkGfm]}
-											className="markdown-content"
-											components={{
-												p: ({ children }) => <p className="mb-2">{children}</p>,
-												blockquote: ({ children }) => (
-													<blockquote className="border-start border-2 ps-3 my-2 text-italic">
-														{children}
-													</blockquote>
-												),
-											}}
-										>
-											{msg.content}
-										</ReactMarkdown>
-									) : (
-										msg.content
-									)}
+									<ReactMarkdown
+										remarkPlugins={[remarkGfm]}
+										className="markdown-content"
+										components={{
+											p: ({ children }) => <p className="mb-2">{children}</p>,
+											blockquote: ({ children }) => (
+												<blockquote className="border-start border-2 ps-3 my-2 text-italic">
+													{children}
+												</blockquote>
+											),
+										}}
+									>
+										{msg.content}
+									</ReactMarkdown>
 								</div>
 							</div>
 						))}
@@ -123,7 +154,19 @@ export const AIChatInterface: React.FC = () => {
 						)}
 					</Stack>
 				</div>
-				<Form onSubmit={handleSubmit} className="border-top p-3">
+				<Form onSubmit={(e) => {
+					e.preventDefault();
+					if (input?.trim().toLowerCase() === '/reset' && currentCampaign?.id) {
+						setMessages([]);
+						setInput('');
+						append({
+							role: 'system',
+							content: getDMPrompt(allCharacters),
+						});
+					} else {
+						handleSubmit(e);
+					}
+				}} className="border-top p-3">
 					<div className="d-flex gap-2">
 						<Form.Control
 							value={input}

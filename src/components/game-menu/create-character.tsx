@@ -131,6 +131,7 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 		setValue('race', race);
 		setValue('class', characterClass);
 		setValue('stats', randomStats);
+		setValue('gender', Math.random() < 0.5 ? 'male' : 'female');
 		setStats(randomStats);
 		setRemainingPoints(0);
 	};
@@ -156,18 +157,38 @@ export const CreateCharacter: React.FC<CreateCharacterProps> = ({ onComplete }) 
 					</Alert>
 				)}
 
-				<Form.Group>
-					<Form.Label>Character Name</Form.Label>
-					<Form.Control
-						{...register('name')}
-						isInvalid={!!errors.name}
-					/>
-					{errors.name && (
-						<Form.Control.Feedback type="invalid">
-							{errors.name.message}
-						</Form.Control.Feedback>
-					)}
-				</Form.Group>
+				<Row>
+					<Col>
+						<Form.Group>
+							<Form.Label>Character Name</Form.Label>
+							<Form.Control
+								{...register('name')}
+								isInvalid={!!errors.name}
+							/>
+							{errors.name && (
+								<Form.Control.Feedback type="invalid">
+									{errors.name.message}
+								</Form.Control.Feedback>
+							)}
+						</Form.Group>
+					</Col>
+					<Col md={3}>
+						<Form.Group>
+							<Form.Label>Gender</Form.Label>
+							<Form.Select {...register('gender')} isInvalid={!!errors.gender} required>
+								<option value="">Select Gender</option>
+								<option value="male">Male</option>
+								<option value="female">Female</option>
+								<option value="other">Other</option>
+							</Form.Select>
+							{errors.gender && (
+								<Form.Control.Feedback type="invalid">
+									{errors.gender.message}
+								</Form.Control.Feedback>
+							)}
+						</Form.Group>
+					</Col>
+				</Row>
 
 				<Row>
 					<Col>

@@ -34,6 +34,7 @@ export const CharacterSchema = z.object({
 	level: z.number().min(1),
 	class: z.string(),
 	race: z.string(),
+	gender: z.string(),
 	stats: CharacterStatsSchema,
 	startingPoints: z.number().min(0).default(10),
 	equipment: CharacterEquipmentSchema,

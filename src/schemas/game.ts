@@ -10,11 +10,33 @@ export const MapTileSchema = z.object({
 });
 
 export const GameMessageSchema = z.object({
+	/**
+	 * A unique identifier for the message.
+	 */
 	id: z.string(),
+	/**
+	 * The timestamp of the message.
+	 */
+	createdAt: z.date().optional(),
+	/**
+	 * Text content of the message.
+	 */
 	content: z.string(),
-	sender: z.string(),
-	timestamp: z.number(),
-	type: z.enum(['system', 'player', 'dm']).default('player'),
+	/**
+	 * Additional attachments to be sent along with the message.
+	 */
+	experimental_attachments: z.array(z.any()).optional(),
+	role: z.enum(['system', 'user', 'assistant', 'data']),
+	data: z.any().optional(),
+	/**
+	 * Additional message-specific information added on the server via StreamData
+	 */
+	annotations: z.array(z.any()).optional(),
+	/**
+	 * Tool invocations (that can be tool calls or tool results, depending on whether or not the invocation has finished)
+	 * that the assistant made as part of this message.
+	 */
+	toolInvocations: z.array(z.any()).optional(),
 });
 
 export const GameMapSchema = z.object({
