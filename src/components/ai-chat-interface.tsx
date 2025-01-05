@@ -11,13 +11,20 @@ import { useGameStore } from '@/stores/game-store';
 import { LuSend } from 'react-icons/lu';
 
 export const AIChatInterface: React.FC = () => {
-	const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+	const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
 		api: '/api/chat',
-		initialMessages: [{
-			id: 'system-1',
-			role: 'system',
-			content: 'You are a Dungeon Master in a D&D game. Respond in character, making the game engaging and fun.',
-		}],
+		onResponse: (response) => {
+			console.log('response', response);
+			if (!response.ok) {
+				throw new Error('Failed to send message');
+			}
+		},
+		onFinish: () => {
+			// Optionally handle chat completion
+		},
+		onError: (error) => {
+			console.error('Chat error:', error);
+		},
 	});
 
 	const { currentCampaign } = useGameStore();
@@ -55,6 +62,11 @@ export const AIChatInterface: React.FC = () => {
 							<div className="d-flex align-items-center gap-2 text-muted">
 								<Spinner size="sm" />
 								<span>DM is typing...</span>
+							</div>
+						)}
+						{error && (
+							<div className="text-danger small p-2">
+								Error: {error.message}
 							</div>
 						)}
 					</Stack>
