@@ -53,3 +53,31 @@
 	border-radius: 1rem;
 	border: 1px solid rgba(0, 0, 0, 0.1);
 }
+
+/* Add these styles for markdown content */
+.markdown-content {
+	color: inherit;
+}
+
+.markdown-content p:last-child {
+	margin-bottom: 0;
+}
+
+.markdown-content code {
+	color: #e83e8c;
+	background-color: rgba(0,0,0,0.1);
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+	margin-bottom: 1rem;
+	padding-left: 1.5rem;
+}
+
+.markdown-content h3 {
+	font-size: 1.25rem;
+	margin-top: 1rem;
+	margin-bottom: 0.5rem;
+}

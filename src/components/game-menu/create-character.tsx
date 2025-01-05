@@ -9,7 +9,7 @@ import {
 } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CharacterSchema, Character, CharacterStats } from '@/schemas/game';
+import { CharacterSchema, Character, CharacterStats } from '@/schemas/character';
 import { useCharacterStore } from '@/stores/character-store';
 import { generateRandomCharacter } from '@/utils/character-generator';
 import { LuDices } from 'react-icons/lu';

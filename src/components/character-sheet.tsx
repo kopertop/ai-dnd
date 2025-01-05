@@ -5,7 +5,7 @@ import {
 	Form,
 	Alert,
 } from 'react-bootstrap';
-import { Character } from '@/schemas/game';
+import { Character } from '@/schemas/character';
 import { useCharacterStore } from '@/stores/character-store';
 
 const BASE_STAT = 5;

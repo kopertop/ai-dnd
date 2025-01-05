@@ -1,4 +1,4 @@
-import { CharacterStats } from '@/schemas/game';
+import { CharacterStats } from '@/schemas/character';
 
 const RACE_NAMES = {
 	Human: {

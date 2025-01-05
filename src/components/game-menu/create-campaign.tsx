@@ -39,6 +39,7 @@ export const CreateCampaign: React.FC<CreateCampaignProps> = ({ onComplete }) =>
 			...data,
 			dmId: 'current-user',
 			characters: {},
+			messages: [],
 		});
 		setShowSuccess(true);
 		setTimeout(() => setShowSuccess(false), 3000);

@@ -10,6 +10,8 @@ import { useChat } from 'ai/react';
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
 import { LuSend, LuExpand, LuShrink } from 'react-icons/lu';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export const AIChatInterface: React.FC = () => {
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -28,11 +30,19 @@ export const AIChatInterface: React.FC = () => {
 
 	const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
 		api: '/api/chat',
-		initialMessages: [],
+		initialMessages: currentCampaign?.messages?.map((msg) => ({
+			id: msg.id,
+			role: msg.role,
+			content: msg.content,
+			createdAt: new Date(msg.createdAt),
+		})) || [],
 		onResponse: (response) => {
 			if (!response.ok) {
 				throw new Error('Failed to send message');
 			}
+		},
+		onFinish: (response) => {
+			console.log(response, messages);
 		},
 		body: {
 			characterName: userCharacter?.name,
@@ -79,7 +89,24 @@ export const AIChatInterface: React.FC = () => {
 									<div className="small text-opacity-75 mb-1">
 										{msg.role === 'assistant' ? 'DM' : userCharacter?.name || 'You'}
 									</div>
-									{msg.content}
+									{msg.role === 'assistant' ? (
+										<ReactMarkdown
+											remarkPlugins={[remarkGfm]}
+											className="markdown-content"
+											components={{
+												p: ({ children }) => <p className="mb-2">{children}</p>,
+												blockquote: ({ children }) => (
+													<blockquote className="border-start border-2 ps-3 my-2 text-italic">
+														{children}
+													</blockquote>
+												),
+											}}
+										>
+											{msg.content}
+										</ReactMarkdown>
+									) : (
+										msg.content
+									)}
 								</div>
 							</div>
 						))}

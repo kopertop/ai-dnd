@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Character } from '@/schemas/game';
+import { Character } from '@/schemas/character';
 
 interface CharacterStore {
 	characters: Character[];

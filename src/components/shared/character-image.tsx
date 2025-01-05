@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image } from 'react-bootstrap';
-import { Character } from '@/schemas/game';
+import { Character } from '@/schemas/character';
 
 interface CharacterImageProps {
 	character: Character;

@@ -25,6 +25,7 @@ export const useGameStore = create<GameStore>()(
 			currentTurn: '',
 			gameMap: generateMap(),
 			messages: [],
+			inventory: [],
 
 			createCampaign: (campaignData) => {
 				const campaign: Campaign = {

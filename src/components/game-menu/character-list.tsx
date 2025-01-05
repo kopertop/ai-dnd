@@ -11,7 +11,7 @@ import {
 import { useCharacterStore } from '@/stores/character-store';
 import { useGameStore } from '@/stores/game-store';
 import { Campaign } from '@/schemas/menu';
-import { Character } from '@/schemas/game';
+import { Character } from '@/schemas/character';
 import { LuUser, LuBrain } from 'react-icons/lu';
 import { CharacterImage } from '@/components/shared/character-image';
 
