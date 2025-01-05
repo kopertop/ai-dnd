@@ -14,7 +14,7 @@ An interactive web-based dungeon master powered by AI. This project is currently
 
 - React 18 with TypeScript
 - Vite for fast development and building
-- Chakra UI for components and styling
+- React Bootstrap for components and styling
 - Zustand for state management
 - Canvas-based map rendering
 

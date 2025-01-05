@@ -1,31 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
-	Box,
+	Form,
 	Button,
-	Input,
-	VStack,
-	Textarea,
-} from '@chakra-ui/react';
-import { FormControl, FormLabel } from '@chakra-ui/form-control';
-import { useToast } from '@chakra-ui/toast';
+	Stack,
+	Alert,
+} from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { CampaignSchema } from '@/schemas/menu';
 import { useGameStore } from '@/stores/game-store';
+import { CreateCharacter } from './create-character';
+
+interface CreateCampaignProps {
+	onComplete?: () => void;
+}
 
 type CampaignFormData = {
 	name: string;
 	description: string;
 };
 
-export const CreateCampaign: React.FC = () => {
+export const CreateCampaign: React.FC<CreateCampaignProps> = ({ onComplete }) => {
 	const { createCampaign } = useGameStore();
-	const toast = useToast();
+	const [showAddCharacter, setShowAddCharacter] = useState(false);
+	const [showSuccess, setShowSuccess] = useState(false);
+
 	const {
 		register,
 		handleSubmit,
 		formState: { errors },
-		reset,
 	} = useForm<CampaignFormData>({
 		resolver: zodResolver(
 			CampaignSchema.pick({ name: true, description: true })
@@ -35,35 +38,71 @@ export const CreateCampaign: React.FC = () => {
 	const onSubmit = (data: CampaignFormData) => {
 		createCampaign({
 			...data,
-			dmId: 'current-user', // TODO: Replace with actual user ID
+			dmId: 'current-user',
 			characters: [],
 		});
-		toast({
-			title: 'Campaign Created',
-			description: `${data.name} has been created successfully!`,
-			status: 'success',
-			duration: 3000,
-		});
-		reset();
+		setShowSuccess(true);
+		setTimeout(() => setShowSuccess(false), 3000);
+		setShowAddCharacter(true);
 	};
 
 	return (
-		<Box as="form" onSubmit={handleSubmit(onSubmit)} mt={8}>
-			<VStack gap={4} align="stretch">
-				<FormControl isRequired isInvalid={!!errors.name}>
-					<FormLabel>Campaign Name</FormLabel>
-					<Input {...register('name')} />
-				</FormControl>
+		<Stack gap={4}>
+			{showSuccess && (
+				<Alert variant="success">
+					Campaign created successfully!
+				</Alert>
+			)}
 
-				<FormControl isRequired isInvalid={!!errors.description}>
-					<FormLabel>Description</FormLabel>
-					<Textarea {...register('description')} />
-				</FormControl>
+			{!showAddCharacter ? (
+				<Form onSubmit={handleSubmit(onSubmit)}>
+					<Stack gap={3}>
+						<Form.Group>
+							<Form.Label>Campaign Name</Form.Label>
+							<Form.Control
+								{...register('name')}
+								isInvalid={!!errors.name}
+							/>
+							{errors.name && (
+								<Form.Control.Feedback type="invalid">
+									{errors.name.message}
+								</Form.Control.Feedback>
+							)}
+						</Form.Group>
 
-				<Button type="submit" colorScheme="blue">
-					Create Campaign
-				</Button>
-			</VStack>
-		</Box>
+						<Form.Group>
+							<Form.Label>Description</Form.Label>
+							<Form.Control
+								as="textarea"
+								rows={3}
+								{...register('description')}
+								isInvalid={!!errors.description}
+							/>
+							{errors.description && (
+								<Form.Control.Feedback type="invalid">
+									{errors.description.message}
+								</Form.Control.Feedback>
+							)}
+						</Form.Group>
+
+						<Button type="submit" variant="primary">
+							Create Campaign
+						</Button>
+					</Stack>
+				</Form>
+			) : (
+				<>
+					<h4>Add Characters to Campaign</h4>
+					<p className="text-muted">
+						Add at least one character to begin your campaign
+					</p>
+					<hr />
+					<CreateCharacter onComplete={onComplete} />
+					<Button variant="link" onClick={onComplete}>
+						Skip for now
+					</Button>
+				</>
+			)}
+		</Stack>
 	);
 };

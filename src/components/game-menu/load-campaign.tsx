@@ -6,15 +6,23 @@ import {
 	Badge,
 	Row,
 	Col,
-	ButtonGroup,
 } from 'react-bootstrap';
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
 import { LuCalendar, LuUsers } from 'react-icons/lu';
 
-export const CampaignList: React.FC = () => {
-	const { campaigns, loadCampaign, currentCampaign, exitCampaign } = useGameStore();
+interface LoadCampaignProps {
+	onComplete?: () => void;
+}
+
+export const LoadCampaign: React.FC<LoadCampaignProps> = ({ onComplete }) => {
+	const { campaigns, loadCampaign } = useGameStore();
 	const { getCharactersByIds } = useCharacterStore();
+
+	const handleLoadCampaign = (id: string) => {
+		loadCampaign(id);
+		onComplete?.();
+	};
 
 	if (campaigns.length === 0) {
 		return (
@@ -34,24 +42,13 @@ export const CampaignList: React.FC = () => {
 				const lastPlayed = new Date(campaign.lastPlayed).toLocaleDateString();
 				const userCharacters = characters.filter(c => c.controlType === 'user').length;
 				const aiCharacters = characters.filter(c => c.controlType === 'ai').length;
-				const isActive = currentCampaign?.id === campaign.id;
 
 				return (
-					<Card
-						key={campaign.id}
-						className={`shadow-sm ${isActive ? 'border-primary' : ''}`}
-					>
+					<Card key={campaign.id} className="shadow-sm">
 						<Card.Body>
 							<Stack gap={3}>
 								<div className="d-flex justify-content-between align-items-start">
-									<h5 className="mb-0">
-										{campaign.name}
-										{isActive && (
-											<Badge bg="primary" className="ms-2">
-												Active
-											</Badge>
-										)}
-									</h5>
+									<h5 className="mb-0">{campaign.name}</h5>
 									<Badge bg="success">
 										{characters.length} Characters
 									</Badge>
@@ -72,25 +69,13 @@ export const CampaignList: React.FC = () => {
 									</Col>
 								</Row>
 
-								<ButtonGroup>
-									{isActive ? (
-										<Button
-											variant="outline-danger"
-											size="sm"
-											onClick={exitCampaign}
-										>
-											Exit Campaign
-										</Button>
-									) : (
-										<Button
-											variant="primary"
-											size="sm"
-											onClick={() => loadCampaign(campaign.id)}
-										>
-											Load Campaign
-										</Button>
-									)}
-								</ButtonGroup>
+								<Button
+									variant="primary"
+									size="sm"
+									onClick={() => handleLoadCampaign(campaign.id)}
+								>
+									Load Campaign
+								</Button>
 							</Stack>
 						</Card.Body>
 					</Card>

@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { CharacterSchema } from './game';
 
 export const CampaignSchema = z.object({
 	id: z.string(),

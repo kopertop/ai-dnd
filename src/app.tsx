@@ -1,20 +1,17 @@
-import { Provider } from './components/ui/provider';
-import { GameMap } from './components/game-map';
-import { ChatInterface } from './components/chat-interface';
-import { Center, Grid } from '@chakra-ui/react';
-import { CharacterSheet } from './components/character-sheet';
+import { Container } from 'react-bootstrap';
+import { OpeningMenu } from './components/game-menu/opening-menu';
+import { GameInterface } from './components/game-interface';
+import { useGameStore } from './stores/game-store';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 function App() {
+	const { currentCampaign } = useGameStore();
+	const isGameActive = currentCampaign !== null;
+
 	return (
-		<Provider>
-			<Center className="app-container" width="100vw" height="100vh">
-				<Grid templateColumns="auto auto auto" gap={8} alignItems="start">
-					<CharacterSheet />
-					<GameMap />
-					<ChatInterface />
-				</Grid>
-			</Center>
-		</Provider>
+		<Container fluid className="vh-100 d-flex align-items-center justify-content-center bg-light">
+			{isGameActive ? <GameInterface /> : <OpeningMenu />}
+		</Container>
 	);
 }
 

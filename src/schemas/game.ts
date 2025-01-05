@@ -7,11 +7,6 @@ export const PositionSchema = z.object({
 });
 
 export const CharacterStatsSchema = z.object({
-	hp: z.number().min(0),
-	maxHp: z.number().min(1),
-	level: z.number().min(1),
-	class: z.string(),
-	race: z.string(),
 	strength: z.number().min(1).max(20),
 	dexterity: z.number().min(1).max(20),
 	constitution: z.number().min(1).max(20),
@@ -38,8 +33,15 @@ export const CharacterSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	position: PositionSchema,
-	type: z.enum(['player', 'npc']),
+	type: z.enum(['player', 'npc', 'ai']),
+	controlType: z.enum(['user', 'ai']),
+	hp: z.number().min(0),
+	maxHp: z.number().min(1),
+	level: z.number().min(1),
+	class: z.string(),
+	race: z.string(),
 	stats: CharacterStatsSchema,
+	startingPoints: z.number().min(0).default(10),
 });
 
 export const GameMapSchema = z.object({

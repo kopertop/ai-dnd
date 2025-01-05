@@ -1,47 +1,58 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-	Box,
-	Heading,
-	VStack,
-} from '@chakra-ui/react';
-import {
-	Tabs,
-	TabList,
-	TabPanels,
-	Tab,
-	TabPanel,
-} from '@chakra-ui/tabs';
-import { CharacterList } from './character-list';
+	Container,
+	Row,
+	Col,
+	Stack,
+	Button,
+	Card,
+} from 'react-bootstrap';
 import { CampaignList } from './campaign-list';
-import { CreateCharacter } from './create-character';
-import { CreateCampaign } from './create-campaign';
+import { CharacterList } from './character-list';
+import { useGameStore } from '@/stores/game-store';
 
 export const GameMenu: React.FC = () => {
-	const [activeTab, setActiveTab] = useState(0);
+	const { currentCampaign } = useGameStore();
 
 	return (
-		<Box maxW="800px" w="full" p={4}>
-			<VStack gap={6} align="stretch">
-				<Heading size="lg" textAlign="center">
-					D&D Game Menu
-				</Heading>
-				<Tabs index={activeTab} onChange={setActiveTab} variant="enclosed">
-					<TabList>
-						<Tab>Characters</Tab>
-						<Tab>Campaigns</Tab>
-					</TabList>
-					<TabPanels>
-						<TabPanel>
-							<CharacterList />
-							<CreateCharacter />
-						</TabPanel>
-						<TabPanel>
-							<CampaignList />
-							<CreateCampaign />
-						</TabPanel>
-					</TabPanels>
-				</Tabs>
-			</VStack>
-		</Box>
+		<Container>
+			<Row className="g-4">
+				<Col md={8}>
+					<Card className="shadow-sm h-100">
+						<Card.Body>
+							<Stack gap={4}>
+								<div className="d-flex justify-content-between align-items-center">
+									<h4 className="mb-0">Campaigns</h4>
+									<Button variant="primary" size="sm">
+										New Campaign
+									</Button>
+								</div>
+								<CampaignList />
+							</Stack>
+						</Card.Body>
+					</Card>
+				</Col>
+
+				<Col md={4}>
+					<Card className="shadow-sm h-100">
+						<Card.Body>
+							<Stack gap={4}>
+								<div className="d-flex justify-content-between align-items-center">
+									<h4 className="mb-0">Characters</h4>
+									<Button
+										variant="primary"
+										size="sm"
+										disabled={!currentCampaign}
+									>
+										New Character
+									</Button>
+								</div>
+								<CharacterList />
+							</Stack>
+						</Card.Body>
+					</Card>
+				</Col>
+			</Row>
+		</Container>
 	);
 };

@@ -1,8 +1,8 @@
 #root {
-	max-width: 1280px;
 	margin: 0 auto;
 	padding: 2rem;
 	text-align: center;
+	width: 100% !important;
 }
 
 .logo {
@@ -42,4 +42,14 @@
 
 .read-the-docs {
 	color: #888;
+}
+
+.modal-blur .modal-backdrop {
+	backdrop-filter: blur(2px);
+	background-color: rgba(0, 0, 0, 0.6);
+}
+
+.modal-content {
+	border-radius: 1rem;
+	border: 1px solid rgba(0, 0, 0, 0.1);
 }

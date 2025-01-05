@@ -1,61 +1,28 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Character, GameState } from '@/schemas/game';
+import { GameState } from '@/schemas/game';
 import { Campaign } from '@/schemas/menu';
 import { generateMap } from '@/utils/map-generator';
 
 interface GameStore extends GameState {
 	campaigns: Campaign[];
-	createCharacter: (character: Omit<Character, 'id'>) => void;
-	loadCharacter: (id: string) => void;
-	updateCharacter: (id: string, updates: Partial<Character>) => void;
+	currentCampaign: Campaign | null;
 	createCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'lastPlayed'>) => void;
 	loadCampaign: (id: string) => void;
 	updateCampaign: (id: string, updates: Partial<Campaign>) => void;
+	exitCampaign: () => void;
 	syncWithRemote: () => Promise<void>;
 }
 
 export const useGameStore = create<GameStore>()(
 	persist(
 		(set, get) => ({
-			characters: [],
 			campaigns: [],
+			currentCampaign: null,
+			characters: [],
 			currentTurn: '',
 			gameMap: generateMap(),
 			messages: [],
-
-			createCharacter: (characterData) => {
-				const character: Character = {
-					...characterData,
-					id: crypto.randomUUID(),
-				};
-				set((state) => ({
-					characters: [...state.characters, character],
-				}));
-				queueSync();
-			},
-
-			loadCharacter: (id) => {
-				const character = get().characters.find((c) => c.id === id);
-				if (!character) return;
-
-				set((state) => ({
-					characters: [
-						character,
-						...state.characters.filter((c) => c.id !== id && c.type === 'npc'),
-					],
-					currentTurn: character.id,
-				}));
-			},
-
-			updateCharacter: (id, updates) => {
-				set((state) => ({
-					characters: state.characters.map((c) =>
-						c.id === id ? { ...c, ...updates } : c
-					),
-				}));
-				queueSync();
-			},
 
 			createCampaign: (campaignData) => {
 				const campaign: Campaign = {
@@ -79,6 +46,9 @@ export const useGameStore = create<GameStore>()(
 					campaigns: state.campaigns.map((c) =>
 						c.id === id ? { ...c, lastPlayed: Date.now() } : c
 					),
+					currentCampaign: campaign,
+					gameMap: generateMap(),
+					messages: [],
 				}));
 
 				// Load associated characters
@@ -101,6 +71,10 @@ export const useGameStore = create<GameStore>()(
 					),
 				}));
 				queueSync();
+			},
+
+			exitCampaign: () => {
+				set({ currentCampaign: null });
 			},
 
 			syncWithRemote: async () => {

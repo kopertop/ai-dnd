@@ -1,55 +1,74 @@
 import React from 'react';
 import {
-	VStack,
-	Heading,
-	Box,
-	Text,
+	Stack,
+	Card,
 	Button,
-	SimpleGrid,
-	Badge,
-} from '@chakra-ui/react';
-import { useGameStore } from '@/stores/game-store';
+	Row,
+	Col,
+} from 'react-bootstrap';
+import { useCharacterStore } from '@/stores/character-store';
 import { Character } from '@/schemas/game';
 
 export const CharacterList: React.FC = () => {
-	const { characters, loadCharacter } = useGameStore();
+	const { characters, loadCharacter } = useCharacterStore();
 
 	const renderCharacterCard = (character: Character) => (
-		<Box
+		<Card
 			key={character.id}
-			borderWidth="1px"
-			borderRadius="lg"
-			p={4}
-			bg="white"
-			shadow="sm"
+			className="shadow-sm h-100"
 		>
-			<VStack align="stretch" gap={2}>
-				<Heading size="md">{character.name}</Heading>
-				<Text>Level {character.stats.level} {character.stats.race} {character.stats.class}</Text>
-				<SimpleGrid columns={2} gap={2}>
-					<Text>STR: {character.stats.strength}</Text>
-					<Text>DEX: {character.stats.dexterity}</Text>
-					<Text>CON: {character.stats.constitution}</Text>
-					<Text>INT: {character.stats.intelligence}</Text>
-					<Text>WIS: {character.stats.wisdom}</Text>
-					<Text>CHA: {character.stats.charisma}</Text>
-				</SimpleGrid>
-				<Button
-					colorScheme="blue"
-					onClick={() => loadCharacter(character.id)}
-				>
-					Load Character
-				</Button>
-			</VStack>
-		</Box>
+			<Card.Body>
+				<Stack gap={3}>
+					<div>
+						<Card.Title>{character.name}</Card.Title>
+						<Card.Subtitle className="text-muted">
+							Level {character.level} {character.race} {character.class}
+						</Card.Subtitle>
+					</div>
+
+					<Row xs={2} className="g-2">
+						<Col>
+							<small>STR: {character.stats.strength}</small>
+						</Col>
+						<Col>
+							<small>DEX: {character.stats.dexterity}</small>
+						</Col>
+						<Col>
+							<small>CON: {character.stats.constitution}</small>
+						</Col>
+						<Col>
+							<small>INT: {character.stats.intelligence}</small>
+						</Col>
+						<Col>
+							<small>WIS: {character.stats.wisdom}</small>
+						</Col>
+						<Col>
+							<small>CHA: {character.stats.charisma}</small>
+						</Col>
+					</Row>
+
+					<Button
+						variant="primary"
+						size="sm"
+						onClick={() => loadCharacter(character.id)}
+					>
+						Load Character
+					</Button>
+				</Stack>
+			</Card.Body>
+		</Card>
 	);
 
 	return (
-		<VStack gap={4} align="stretch">
-			<Heading size="md">Your Characters</Heading>
-			<SimpleGrid columns={[1, 2, 3]} gap={4}>
-				{characters.map(renderCharacterCard)}
-			</SimpleGrid>
-		</VStack>
+		<Stack gap={4}>
+			<h4>Your Characters</h4>
+			<Row xs={1} md={2} lg={3} className="g-4">
+				{characters.map((character) => (
+					<Col key={character.id}>
+						{renderCharacterCard(character)}
+					</Col>
+				))}
+			</Row>
+		</Stack>
 	);
 };

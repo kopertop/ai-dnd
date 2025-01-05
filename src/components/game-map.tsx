@@ -1,5 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Box, Center } from '@chakra-ui/react';
+import {
+	Card,
+	Stack,
+} from 'react-bootstrap';
 import { useGameStore } from '@/stores/game-store';
 import { MapTile } from '@/schemas/game';
 
@@ -15,38 +18,38 @@ const tileImages: Record<MapTile['type'], HTMLImageElement> = {
 	grass: new Image(),
 };
 
-// Initialize and load images
-const loadImages = () => {
-	const tileTypes: MapTile['type'][] = Object.keys(tileImages) as MapTile['type'][];
-
-	return Promise.all(
-		tileTypes.map((type) => {
-			return new Promise<void>((resolve, reject) => {
-				const img = tileImages[type];
-				img.onload = () => {
-					tileImages[type] = img;
-					resolve();
-				};
-				img.onerror = () => {
-					console.error(`Error loading image for ${type}`);
-					reject(new Error(`Error loading image for ${type}`));
-				};
-				if (type === 'wall') {
-					img.src = `/tiles/${type}.png`;
-				} else {
-					img.src = `/tiles/${type}.svg`;
-				}
-			});
-		})
-	);
-};
-
 export const GameMap: React.FC = () => {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const { gameMap, characters } = useGameStore();
 	const [imagesLoaded, setImagesLoaded] = useState(false);
 
+	// Initialize and load images
 	useEffect(() => {
+		const loadImages = () => {
+			const tileTypes: MapTile['type'][] = Object.keys(tileImages) as MapTile['type'][];
+
+			return Promise.all(
+				tileTypes.map((type) => {
+					return new Promise<void>((resolve, reject) => {
+						const img = tileImages[type];
+						img.onload = () => {
+							tileImages[type] = img;
+							resolve();
+						};
+						img.onerror = () => {
+							console.error(`Error loading image for ${type}`);
+							reject(new Error(`Error loading image for ${type}`));
+						};
+						if (type === 'wall') {
+							img.src = `/tiles/${type}.png`;
+						} else {
+							img.src = `/tiles/${type}.svg`;
+						}
+					});
+				})
+			);
+		};
+
 		console.log('Loading images');
 		loadImages().then(() => {
 			console.log('Images loaded');
@@ -98,7 +101,6 @@ export const GameMap: React.FC = () => {
 		// Clear canvas
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-		console.log('Game Map Tiles', gameMap.tiles);
 		// Draw map
 		gameMap.tiles.forEach((row, y) => {
 			row.forEach((tile, x) => {
@@ -122,15 +124,17 @@ export const GameMap: React.FC = () => {
 	}, [gameMap, characters, imagesLoaded]);
 
 	return (
-		<Box border="1px solid" borderColor="gray.200" borderRadius="md" p={2}>
-			<Center>
-				<canvas
-					ref={canvasRef}
-					width={gameMap.width * TILE_SIZE}
-					height={gameMap.height * TILE_SIZE}
-					style={{ background: '#000' }}
-				/>
-			</Center>
-		</Box>
+		<Card className="shadow-sm">
+			<Card.Body>
+				<Stack gap={3}>
+					<canvas
+						ref={canvasRef}
+						width={gameMap.width * TILE_SIZE}
+						height={gameMap.height * TILE_SIZE}
+						className="bg-dark"
+					/>
+				</Stack>
+			</Card.Body>
+		</Card>
 	);
 };

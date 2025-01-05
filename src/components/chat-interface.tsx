@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-	Box,
-	Input,
+	Card,
+	Form,
 	Button,
-	VStack,
-	Text,
-} from '@chakra-ui/react';
-import { useGameStore } from '../stores/game-store';
-import { GameMessageSchema } from '../schemas/game';
+	Stack,
+} from 'react-bootstrap';
+import { useGameStore } from '@/stores/game-store';
+import { GameMessageSchema } from '@/schemas/game';
 
 export const ChatInterface: React.FC = () => {
 	const [input, setInput] = useState('');
@@ -33,7 +32,7 @@ export const ChatInterface: React.FC = () => {
 		}
 	};
 
-	const handleKeyPress = (e: React.KeyboardEvent) => {
+	const handleKeyPress = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
 		if (e.key === 'Enter' && !e.shiftKey) {
 			e.preventDefault();
 			handleSend();
@@ -41,40 +40,55 @@ export const ChatInterface: React.FC = () => {
 	};
 
 	return (
-		<Box p={4} borderWidth="1px" borderRadius="lg" bg="white">
-			<VStack gap={4} alignItems="stretch">
-				<Box height="300px" overflowY="auto" p={2}>
-					{messages.map((msg) => {
-						try {
-							GameMessageSchema.parse(msg);
-							return (
-								<Text
-									key={msg.id}
-									color={msg.type === 'system' ? 'gray.500' :
-										msg.type === 'dm' ? 'red.500' :
-											'black'}
-								>
-									<strong>{msg.sender}:</strong> {msg.content}
-								</Text>
-							);
-						} catch (error) {
-							console.error('Invalid message format:', error);
-							return null;
-						}
-					})}
-					<div ref={messagesEndRef} />
-				</Box>
-				<Input
-					value={input}
-					onChange={(e) => setInput(e.target.value)}
-					onKeyPress={handleKeyPress}
-					placeholder="Describe your action..."
-					size="lg"
-				/>
-				<Button onClick={handleSend} colorScheme="blue">
-					Send
-				</Button>
-			</VStack>
-		</Box>
+		<Card className="shadow-sm h-100">
+			<Card.Body className="d-flex flex-column">
+				<Stack gap={3} className="h-100">
+					<div
+						className="bg-light p-3 rounded flex-grow-1"
+						style={{
+							minHeight: '300px',
+							maxHeight: '500px',
+							overflowY: 'auto',
+						}}
+					>
+						{messages.map((msg) => {
+							try {
+								GameMessageSchema.parse(msg);
+								const messageClass = msg.type === 'system'
+									? 'text-muted'
+									: msg.type === 'dm'
+										? 'text-danger'
+										: 'text-dark';
+
+								return (
+									<p key={msg.id} className={`mb-2 ${messageClass}`}>
+										<strong>{msg.sender}:</strong> {msg.content}
+									</p>
+								);
+							} catch (error) {
+								console.error('Invalid message format:', error);
+								return null;
+							}
+						})}
+						<div ref={messagesEndRef} />
+					</div>
+
+					<Form.Group>
+						<Form.Control
+							as="textarea"
+							value={input}
+							onChange={(e) => setInput(e.target.value)}
+							onKeyPress={handleKeyPress}
+							placeholder="Describe your action..."
+							rows={2}
+						/>
+					</Form.Group>
+
+					<Button onClick={handleSend} variant="primary">
+						Send
+					</Button>
+				</Stack>
+			</Card.Body>
+		</Card>
 	);
 };
