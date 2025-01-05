@@ -11,7 +11,7 @@ import {
 } from 'react-bootstrap';
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
-import { Campaign } from '@/schemas/menu';
+import { Campaign } from '@/schemas/campaign';
 import { LuCalendar, LuUsers, LuTrash2 } from 'react-icons/lu';
 
 export const CampaignList: React.FC<{ onCampaignSelect: (campaign: Campaign) => void }> = ({ onCampaignSelect }) => {

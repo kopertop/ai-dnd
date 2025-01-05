@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { GameState } from '@/schemas/game';
-import { Campaign } from '@/schemas/menu';
+import { Campaign } from '@/schemas/campaign';
 import { generateMap } from '@/utils/map-generator';
 
 interface GameStore extends GameState {

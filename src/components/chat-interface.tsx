@@ -13,11 +13,12 @@ import { LuSend, LuExpand, LuShrink } from 'react-icons/lu';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getDMPrompt } from '@/prompts/dm';
+import { handleChatAction, ChatAction } from '@/utils/chat-actions';
 
 export const AIChatInterface: React.FC = () => {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const { currentCampaign, updateCampaign } = useGameStore();
-	const { getCharactersByIds } = useCharacterStore();
+	const { getCharactersByIds, updateCharacter } = useCharacterStore();
 
 	// Get the user's active character
 	const userCharacterId = currentCampaign ?
@@ -46,22 +47,43 @@ export const AIChatInterface: React.FC = () => {
 		initialMessages: currentCampaign?.messages?.length ? currentCampaign.messages : [{
 			id: 'system-1',
 			role: 'system',
-			content: getDMPrompt(allCharacters),
+			content: getDMPrompt(allCharacters, currentCampaign?.inventory || []),
 		}],
 		onResponse: (response) => {
 			if (!response.ok) {
 				throw new Error('Failed to send message');
 			}
 		},
-		onFinish: (currentMessage) => {
-			console.log('onFinish', {
-				currentMessage,
-				currentCampaign,
-				messages,
-			});
+		onFinish: (message) => {
+			// Scan for actions in the message
+			if (message.content.includes('[') && message.content.includes(']')) {
+				const actions = message.content.matchAll(/\[(?<type>[^\]]+)\](?<value>[^\]]+)\[\/([^\]]+)\]/g);
+				for (const action of actions || []) {
+					console.log('action', action);
+					handleChatAction(
+						{
+							type: action[0] as ChatAction['type'],
+							targetId: action[1],
+							value: Number(action[2]),
+						},
+						currentCampaign!,
+						allCharacters,
+						updateCampaign,
+						updateCharacter,
+					);
+				}
+			}
+
+			if (currentCampaign?.id) {
+				updateCampaign(currentCampaign.id, {
+					messages: messages.concat(message),
+				});
+			}
 		},
 		body: {
 			characterName: userCharacter?.name,
+			characters: allCharacters,
+			inventory: currentCampaign?.inventory,
 		},
 	});
 	useEffect(() => {

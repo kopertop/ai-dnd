@@ -7,9 +7,8 @@ import {
 } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CampaignSchema } from '@/schemas/menu';
+import { CampaignSchema } from '@/schemas/campaign';
 import { useGameStore } from '@/stores/game-store';
-import { CreateCharacter } from './create-character';
 
 interface CreateCampaignProps {
 	onComplete?: () => void;
@@ -40,6 +39,7 @@ export const CreateCampaign: React.FC<CreateCampaignProps> = ({ onComplete }) =>
 			dmId: 'current-user',
 			characters: {},
 			messages: [],
+			inventory: [],
 		});
 		setShowSuccess(true);
 		setTimeout(() => setShowSuccess(false), 3000);

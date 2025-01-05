@@ -6,7 +6,7 @@ import {
 } from 'react-bootstrap';
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
-import { Campaign } from '@/schemas/menu';
+import { Campaign } from '@/schemas/campaign';
 import { LuUser, LuBrain, LuSword } from 'react-icons/lu';
 import { CharacterImage } from '@/components/shared/character-image';
 

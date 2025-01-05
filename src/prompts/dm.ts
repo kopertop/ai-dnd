@@ -1,6 +1,10 @@
 import { Character } from "@/schemas/character";
+import { Item } from "@/schemas/item";
 
-export function getDMPrompt(characters?: (Character & { control?: 'user' | 'ai'})[]) {
+export function getDMPrompt(
+	characters?: (Character & { control?: 'user' | 'ai'})[],
+	inventory?: Item[],
+) {
 	if (!characters?.length) {
 		return '';
 	}
@@ -43,6 +47,9 @@ Follow these guidelines:
 	7. React to player actions realistically
 	8. Keep responses shorter than 500 tokens, allowing the user to interact for more information.
 	9. Use markdown to format your responses.
+
+Current Inventory:
+${inventory?.map((item) => `\t- ${item.name}`).join('\n') || '*Empty*'}
 
 Format your responses using markdown:
 	- Use **bold** for important information
