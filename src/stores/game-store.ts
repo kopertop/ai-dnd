@@ -1,92 +1,126 @@
 import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
-import { generateMap } from '../utils/map-generator';
-import {
-	GameState,
-	GameStateSchema,
-	GameMessageSchema,
-	PositionSchema,
-	Character
-} from '../schemas/game';
+import { persist } from 'zustand/middleware';
+import { Character, GameState } from '@/schemas/game';
+import { Campaign } from '@/schemas/menu';
+import { generateMap } from '@/utils/map-generator';
 
 interface GameStore extends GameState {
-	sendMessage: (content: string, type?: 'system' | 'player' | 'dm') => void;
-	moveCharacter: (characterId: string, x: number, y: number) => void;
-	addCharacter: (character: Character) => void;
-	removeCharacter: (characterId: string) => void;
-	regenerateMap: (width?: number, height?: number) => void;
+	campaigns: Campaign[];
+	createCharacter: (character: Omit<Character, 'id'>) => void;
+	loadCharacter: (id: string) => void;
+	updateCharacter: (id: string, updates: Partial<Character>) => void;
+	createCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'lastPlayed'>) => void;
+	loadCampaign: (id: string) => void;
+	updateCampaign: (id: string, updates: Partial<Campaign>) => void;
+	syncWithRemote: () => Promise<void>;
 }
 
-const DEFAULT_MAP_WIDTH = window.innerWidth < 768 ? 20 : 40;
-const DEFAULT_MAP_HEIGHT = window.innerWidth < 768 ? 20 : 30;
-
-const initialState: GameState = {
-	characters: [],
-	currentTurn: '',
-	gameMap: {
-		...generateMap(DEFAULT_MAP_WIDTH, DEFAULT_MAP_HEIGHT)
-	},
-	messages: [],
-};
-
-// Validate initial state
-GameStateSchema.parse(initialState);
-
 export const useGameStore = create<GameStore>()(
-	devtools(
-		(set) => ({
-			...initialState,
+	persist(
+		(set, get) => ({
+			characters: [],
+			campaigns: [],
+			currentTurn: '',
+			gameMap: generateMap(),
+			messages: [],
 
-			sendMessage: (content: string, type = 'player') =>
-				set((state) => {
-					const newMessage = {
-						id: Date.now().toString(),
-						content,
-						sender: type === 'player' ? 'Player' : type === 'dm' ? 'DM' : 'System',
-						timestamp: Date.now(),
-						type,
-					};
-
-					GameMessageSchema.parse(newMessage);
-
-					return {
-						messages: [...state.messages, newMessage],
-					};
-				}),
-
-			moveCharacter: (characterId: string, x: number, y: number) =>
-				set((state) => {
-					const newPosition = { x, y };
-					PositionSchema.parse(newPosition);
-
-					return {
-						characters: state.characters.map((char) =>
-							char.id === characterId
-								? { ...char, position: newPosition }
-								: char
-						),
-					};
-				}),
-
-			addCharacter: (character: Character) =>
+			createCharacter: (characterData) => {
+				const character: Character = {
+					...characterData,
+					id: crypto.randomUUID(),
+				};
 				set((state) => ({
 					characters: [...state.characters, character],
-				})),
+				}));
+				queueSync();
+			},
 
-			removeCharacter: (characterId: string) =>
-				set((state) => ({
-					characters: state.characters.filter((char) => char.id !== characterId),
-				})),
+			loadCharacter: (id) => {
+				const character = get().characters.find((c) => c.id === id);
+				if (!character) return;
 
-			regenerateMap: (width?: number, height?: number) =>
 				set((state) => ({
-					gameMap: generateMap(width || state.gameMap.width, height || state.gameMap.height),
-					characters: state.characters.map(char => ({
-						...char,
-						position: { x: 1, y: 1 } // Reset characters to safe starting position
-					}))
-				})),
+					characters: [
+						character,
+						...state.characters.filter((c) => c.id !== id && c.type === 'npc'),
+					],
+					currentTurn: character.id,
+				}));
+			},
+
+			updateCharacter: (id, updates) => {
+				set((state) => ({
+					characters: state.characters.map((c) =>
+						c.id === id ? { ...c, ...updates } : c
+					),
+				}));
+				queueSync();
+			},
+
+			createCampaign: (campaignData) => {
+				const campaign: Campaign = {
+					...campaignData,
+					id: crypto.randomUUID(),
+					createdAt: Date.now(),
+					lastPlayed: Date.now(),
+				};
+				set((state) => ({
+					campaigns: [...state.campaigns, campaign],
+				}));
+				queueSync();
+			},
+
+			loadCampaign: (id) => {
+				const campaign = get().campaigns.find((c) => c.id === id);
+				if (!campaign) return;
+
+				// Update last played timestamp
+				set((state) => ({
+					campaigns: state.campaigns.map((c) =>
+						c.id === id ? { ...c, lastPlayed: Date.now() } : c
+					),
+				}));
+
+				// Load associated characters
+				const campaignCharacters = get().characters.filter((c) =>
+					campaign.characters.includes(c.id)
+				);
+				set(() => ({
+					characters: campaignCharacters,
+					currentTurn: campaignCharacters[0]?.id || '',
+					gameMap: generateMap(),
+					messages: [],
+				}));
+				queueSync();
+			},
+
+			updateCampaign: (id, updates) => {
+				set((state) => ({
+					campaigns: state.campaigns.map((c) =>
+						c.id === id ? { ...c, ...updates } : c
+					),
+				}));
+				queueSync();
+			},
+
+			syncWithRemote: async () => {
+				// TODO: Implement remote sync
+				console.log('Syncing with remote database...');
+			},
 		}),
-		{ name: 'game-store' }
+		{
+			name: 'dnd-game-storage',
+		}
 	)
 );
+
+// Debounced sync with remote
+let syncTimeout: number | null = null;
+const queueSync = () => {
+	if (syncTimeout) {
+		window.clearTimeout(syncTimeout);
+	}
+	syncTimeout = window.setTimeout(() => {
+		useGameStore.getState().syncWithRemote();
+	}, 5000);
+};
