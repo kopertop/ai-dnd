@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
 	Container,
 	Row,
@@ -17,11 +17,24 @@ import { CampaignCharacterList } from './game-menu/campaign-character-list';
 import { InventoryList } from './game-menu/inventory-list';
 import { OpeningMenu } from './game-menu/opening-menu';
 import { AddCharacters } from './game-menu/add-characters';
+import { generateInventory } from '@/utils/campaign-inventory';
 
 export const GameInterface: React.FC = () => {
-	const { currentCampaign, exitCampaign } = useGameStore();
+	const { currentCampaign, exitCampaign, updateCampaign } = useGameStore();
 	const [showCreateCharacter, setShowCreateCharacter] = useState(false);
 	const [showCharacterList, setShowCharacterList] = useState(false);
+	const [isGeneratingInventory, setIsGeneratingInventory] = useState(false);
+
+	useEffect(() => {
+		if (currentCampaign && !currentCampaign.inventory?.length && !isGeneratingInventory) {
+			setIsGeneratingInventory(true);
+			generateInventory(currentCampaign).then(() => {
+				updateCampaign(currentCampaign.id, { inventory: currentCampaign.inventory });
+				setIsGeneratingInventory(false);
+			});
+		}
+	}, [currentCampaign, updateCampaign]);
+
 	// If no campaign is loaded, show the opening menu
 	if (!currentCampaign) {
 		return <OpeningMenu />;
