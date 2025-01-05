@@ -3,72 +3,108 @@ import {
 	Stack,
 	Card,
 	Button,
+	Badge,
 	Row,
 	Col,
 } from 'react-bootstrap';
 import { useCharacterStore } from '@/stores/character-store';
+import { useGameStore } from '@/stores/game-store';
+import { Campaign } from '@/schemas/menu';
 import { Character } from '@/schemas/game';
 
-export const CharacterList: React.FC = () => {
+interface CharacterListProps {
+	campaign?: Campaign;
+	onCharacterSelect?: (character: Character) => void;
+}
+
+export const CharacterList: React.FC<CharacterListProps> = ({
+	campaign,
+	onCharacterSelect,
+}) => {
 	const { characters, loadCharacter } = useCharacterStore();
+	const { updateCampaign } = useGameStore();
 
-	const renderCharacterCard = (character: Character) => (
-		<Card
-			key={character.id}
-			className="shadow-sm h-100"
-		>
-			<Card.Body>
-				<Stack gap={3}>
-					<div>
-						<Card.Title>{character.name}</Card.Title>
-						<Card.Subtitle className="text-muted">
-							Level {character.level} {character.race} {character.class}
-						</Card.Subtitle>
-					</div>
+	const handleCharacterAction = (character: Character) => {
+		if (campaign) {
+			updateCampaign(campaign.id, {
+				characters: [...campaign.characters, character.id],
+			});
+			onCharacterSelect?.(character);
+		} else {
+			loadCharacter(character.id);
+		}
+	};
 
-					<Row xs={2} className="g-2">
-						<Col>
-							<small>STR: {character.stats.strength}</small>
-						</Col>
-						<Col>
-							<small>DEX: {character.stats.dexterity}</small>
-						</Col>
-						<Col>
-							<small>CON: {character.stats.constitution}</small>
-						</Col>
-						<Col>
-							<small>INT: {character.stats.intelligence}</small>
-						</Col>
-						<Col>
-							<small>WIS: {character.stats.wisdom}</small>
-						</Col>
-						<Col>
-							<small>CHA: {character.stats.charisma}</small>
-						</Col>
-					</Row>
+	const isCharacterInCampaign = (character: Character) => {
+		return campaign?.characters.includes(character.id);
+	};
 
-					<Button
-						variant="primary"
-						size="sm"
-						onClick={() => loadCharacter(character.id)}
-					>
-						Load Character
-					</Button>
-				</Stack>
-			</Card.Body>
-		</Card>
-	);
+	if (characters.length === 0) {
+		return (
+			<Stack gap={2} className="text-center p-4">
+				<p className="text-muted mb-0">No characters found</p>
+				<small className="text-muted">
+					Create a new character to get started
+				</small>
+			</Stack>
+		);
+	}
 
 	return (
-		<Stack gap={4}>
-			<h4>Your Characters</h4>
-			<Row xs={1} md={2} lg={3} className="g-4">
-				{characters.map((character) => (
-					<Col key={character.id}>
-						{renderCharacterCard(character)}
-					</Col>
-				))}
-			</Row>
+		<Stack gap={3}>
+			{characters.map((character) => {
+				const inCampaign = isCharacterInCampaign(character);
+
+				return (
+					<Card key={character.id} className="shadow-sm">
+						<Card.Body>
+							<Stack gap={3}>
+								<div className="d-flex justify-content-between align-items-start">
+									<div>
+										<h5 className="mb-0">
+											{character.name}
+											{inCampaign && (
+												<Badge bg="success" className="ms-2">
+													In Campaign
+												</Badge>
+											)}
+										</h5>
+										<small className="text-muted">
+											Level {character.level} {character.race} {character.class}
+										</small>
+									</div>
+									<Badge bg={character.controlType === 'user' ? 'primary' : 'secondary'}>
+										{character.controlType === 'user' ? 'Player' : 'AI'}
+									</Badge>
+								</div>
+
+								<Row xs={2} className="g-2 text-muted small">
+									<Col>STR: {character.stats.strength}</Col>
+									<Col>DEX: {character.stats.dexterity}</Col>
+									<Col>CON: {character.stats.constitution}</Col>
+									<Col>INT: {character.stats.intelligence}</Col>
+									<Col>WIS: {character.stats.wisdom}</Col>
+									<Col>CHA: {character.stats.charisma}</Col>
+								</Row>
+
+								<Button
+									variant={campaign ? 'success' : 'primary'}
+									size="sm"
+									onClick={() => handleCharacterAction(character)}
+									disabled={inCampaign}
+								>
+									{campaign
+										? inCampaign
+											? 'In your Campaign'
+											: 'Add to Campaign'
+										: 'Load Character'
+									}
+								</Button>
+							</Stack>
+						</Card.Body>
+					</Card>
+				);
+			})}
 		</Stack>
 	);
 };

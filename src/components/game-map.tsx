@@ -128,6 +128,9 @@ export const GameMap: React.FC = () => {
 			<Card.Body>
 				<Stack gap={3}>
 					<canvas
+						style={{
+							maxHeight: window.innerHeight - 120,
+						}}
 						ref={canvasRef}
 						width={gameMap.width * TILE_SIZE}
 						height={gameMap.height * TILE_SIZE}

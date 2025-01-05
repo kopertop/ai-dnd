@@ -55,15 +55,12 @@ export const GameInterface: React.FC = () => {
 				</Navbar.Collapse>
 			</Navbar>
 
-			<Container fluid style={{ marginTop: '72px' }}>
+			<Container style={{ marginTop: '72px' }}>
 				<Row className="g-4">
-					<Col md={3}>
-						<CharacterSheet />
-					</Col>
-					<Col md={6}>
+					<Col lg={9} md={12}>
 						<GameMap />
 					</Col>
-					<Col md={3}>
+					<Col lg={3} md={12}>
 						<ChatInterface />
 					</Col>
 				</Row>
@@ -95,7 +92,10 @@ export const GameInterface: React.FC = () => {
 					<Modal.Title>Campaign Characters</Modal.Title>
 				</Modal.Header>
 				<Modal.Body className="p-4">
-					<CharacterList />
+					<CharacterList
+						campaign={currentCampaign || undefined}
+						onCharacterSelect={() => setShowCharacterList(false)}
+					/>
 				</Modal.Body>
 			</Modal>
 		</Container>

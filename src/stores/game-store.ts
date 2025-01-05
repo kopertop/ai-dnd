@@ -65,11 +65,16 @@ export const useGameStore = create<GameStore>()(
 			},
 
 			updateCampaign: (id, updates) => {
+				console.log('Updating campaign', id, updates);
 				set((state) => ({
 					campaigns: state.campaigns.map((c) =>
 						c.id === id ? { ...c, ...updates } : c
 					),
 				}));
+
+				if (get().currentCampaign?.id === id) {
+					set({ currentCampaign: get().campaigns.find((c) => c.id === id) });
+				}
 				queueSync();
 			},
 
