@@ -17,7 +17,7 @@ export const CharacterCard: React.FC<CharacterCardProps> = ({
 	className = '',
 }) => {
 	return (
-		<Card className={`shadow-sm ${className}`}>
+		<Card className={`shadow-sm ${className} p-0`}>
 			{header && <Card.Header>{header}</Card.Header>}
 			<Card.Body>
 				<Stack gap={3}>

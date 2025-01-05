@@ -8,9 +8,8 @@ import {
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
 import { Campaign } from '@/schemas/campaign';
-import { Item } from '@/schemas/item';
-import { LuUser, LuBrain, LuSword, LuShield, LuChevronDown, LuChevronUp } from 'react-icons/lu';
-import { CharacterImage } from '@/components/shared/character-image';
+import { LuUser, LuBrain, LuSword, LuChevronDown, LuChevronUp } from 'react-icons/lu';
+import { CharacterCard } from '@/components/cards/character-card';
 import { addDefaultEquipment } from '@/utils/character-equipment';
 
 interface CampaignCharacterListProps {
@@ -22,21 +21,11 @@ export const CampaignCharacterList: React.FC<CampaignCharacterListProps> = ({
 }) => {
 	const [isOpen, setIsOpen] = useState(true);
 	const { getCharactersByIds, updateCharacter } = useCharacterStore();
-	const { currentTurn } = useGameStore();
+	const { currentTurn, isInEncounter } = useGameStore();
 
 	if (!campaign) return null;
 
 	const characters = getCharactersByIds(Object.keys(campaign.characters));
-
-	const getEquippedItems = (characterId: string): Record<string, Item> => {
-		const equippedItems: Record<string, Item> = {};
-		campaign.inventory?.forEach(item => {
-			if (item.slot !== 'none') {
-				equippedItems[item.slot] = item;
-			}
-		});
-		return equippedItems;
-	};
 
 	return (
 		<Card className='shadow-sm p-0'>
@@ -60,29 +49,19 @@ export const CampaignCharacterList: React.FC<CampaignCharacterListProps> = ({
 									updateCharacter(character.id, { equipment: character.equipment });
 								}
 								const controlType = campaign.characters[character.id];
-								const isCurrentTurn = currentTurn === character.id;
-								const equippedItems = getEquippedItems(character.id);
+								const isCurrentTurn = isInEncounter && currentTurn === character.id;
 
 								return (
-									<div
+									<CharacterCard
 										key={character.id}
-										className={`p-3 border-bottom ${isCurrentTurn ? 'bg-light' : ''}`}
-									>
-										<div className='d-flex align-items-center gap-3'>
-											<CharacterImage character={character} />
-											<div className='flex-grow-1'>
-												<div className='d-flex justify-content-between align-items-start'>
-													<div>
-														<h6 className='mb-0 d-flex align-items-center gap-2'>
-															{character.name}
-															{isCurrentTurn && (
-																<LuSword className='text-primary' title='Current Turn' />
-															)}
-														</h6>
-														<small className='text-muted'>
-															Level {character.level} {character.race} {character.class}
-														</small>
-													</div>
+										character={character}
+										className={isCurrentTurn ? 'border-primary' : ''}
+										header={
+											<div className='d-flex justify-content-between align-items-center'>
+												<div className='d-flex align-items-center gap-2'>
+													{isCurrentTurn && (
+														<LuSword className='text-primary' title='Current Turn' />
+													)}
 													<Badge
 														bg={controlType === 'user' ? 'primary' : 'secondary'}
 														className='d-flex align-items-center gap-1'
@@ -100,33 +79,9 @@ export const CampaignCharacterList: React.FC<CampaignCharacterListProps> = ({
 														)}
 													</Badge>
 												</div>
-												<div className='d-flex gap-2 mt-1 text-muted small'>
-													<span>HP: {character.hp}/{character.maxHp}</span>
-													<span>•</span>
-													<span>AC: {10 + Math.floor((character.stats.dexterity - 10) / 2)}</span>
-												</div>
-												{Object.keys(equippedItems).length > 0 && (
-													<div className='mt-2'>
-														<div className='d-flex gap-2 flex-wrap'>
-															{Object.entries(equippedItems).map(([slot, item]) => (
-																<Badge
-																	key={slot}
-																	bg='light'
-																	text='dark'
-																	className='d-flex align-items-center gap-1'
-																>
-																	<LuShield className='opacity-50' />
-																	<span className='text-capitalize'>
-																		{slot}: {item.name}
-																	</span>
-																</Badge>
-															))}
-														</div>
-													</div>
-												)}
 											</div>
-										</div>
-									</div>
+										}
+									/>
 								);
 							})}
 						</Stack>

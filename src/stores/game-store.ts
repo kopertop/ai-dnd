@@ -7,6 +7,8 @@ import { generateMap } from '@/utils/map-generator';
 interface GameStore extends GameState {
 	campaigns: Campaign[];
 	currentCampaign: Campaign | null;
+	isInEncounter: boolean;
+	currentTurn: string;
 	createCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'lastPlayed'>) => Campaign;
 	loadCampaign: (id: string) => void;
 	updateCampaign: (id: string, updates: Partial<Campaign>) => void;
@@ -14,6 +16,8 @@ interface GameStore extends GameState {
 	exitCampaign: () => void;
 	syncWithRemote: () => Promise<void>;
 	sendMessage: (message: string) => void;
+	enterEncounter: () => void;
+	exitEncounter: () => void;
 }
 
 export const useGameStore = create<GameStore>()(
@@ -26,6 +30,7 @@ export const useGameStore = create<GameStore>()(
 			gameMap: generateMap(),
 			messages: [],
 			inventory: [],
+			isInEncounter: false,
 
 			createCampaign: (campaignData) => {
 				const campaign: Campaign = {
@@ -99,6 +104,14 @@ export const useGameStore = create<GameStore>()(
 
 			sendMessage: (message) => {
 				console.log('Sending message', message);
+			},
+
+			enterEncounter: () => {
+				set({ isInEncounter: true });
+			},
+
+			exitEncounter: () => {
+				set({ isInEncounter: false });
 			},
 		}),
 		{
