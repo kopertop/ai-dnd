@@ -10,8 +10,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ai-sdk/togetherai": "^0.0.15",
+    "@hono/vite-dev-server": "^0.18.0",
     "@hookform/resolvers": "^3.9.1",
+    "ai": "^4.0.26",
     "bootstrap": "^5.3.3",
+    "hono": "^4.6.16",
     "next-themes": "^0.4.4",
     "react": "^18.3.1",
     "react-bootstrap": "^2.10.7",

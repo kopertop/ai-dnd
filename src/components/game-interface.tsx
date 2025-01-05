@@ -9,8 +9,7 @@ import {
 	ButtonGroup,
 } from 'react-bootstrap';
 import { GameMap } from './game-map';
-import { CharacterSheet } from './character-sheet';
-import { ChatInterface } from './chat-interface';
+import { AIChatInterface } from './ai-chat-interface';
 import { CreateCharacter } from './game-menu/create-character';
 import { CharacterList } from './game-menu/character-list';
 import { useGameStore } from '@/stores/game-store';
@@ -65,7 +64,7 @@ export const GameInterface: React.FC = () => {
 						<GameMap />
 					</Col>
 					<Col xl={3} lg={12} md={12}>
-						<ChatInterface />
+						<AIChatInterface />
 					</Col>
 				</Row>
 			</Container>
