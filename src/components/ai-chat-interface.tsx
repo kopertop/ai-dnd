@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
 	Stack,
 	Form,
@@ -8,34 +8,59 @@ import {
 } from 'react-bootstrap';
 import { useChat } from 'ai/react';
 import { useGameStore } from '@/stores/game-store';
-import { LuSend } from 'react-icons/lu';
+import { useCharacterStore } from '@/stores/character-store';
+import { LuSend, LuExpand, LuShrink } from 'react-icons/lu';
 
 export const AIChatInterface: React.FC = () => {
+	const [isExpanded, setIsExpanded] = useState(false);
+	const { currentCampaign } = useGameStore();
+	const { getCharactersByIds } = useCharacterStore();
+
+	// Get the user's active character
+	const userCharacterId = currentCampaign ?
+		Object.entries(currentCampaign.characters)
+			.find(([_, type]) => type === 'user')?.[0]
+		: undefined;
+
+	const userCharacter = userCharacterId ?
+		getCharactersByIds([userCharacterId])[0]
+		: undefined;
+
 	const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
 		api: '/api/chat',
+		initialMessages: [],
 		onResponse: (response) => {
-			console.log('response', response);
 			if (!response.ok) {
 				throw new Error('Failed to send message');
 			}
 		},
-		onFinish: () => {
-			// Optionally handle chat completion
-		},
-		onError: (error) => {
-			console.error('Chat error:', error);
+		body: {
+			characterName: userCharacter?.name,
 		},
 	});
 
-	const { currentCampaign } = useGameStore();
-
 	return (
-		<Card className="shadow-sm h-100">
-			<Card.Header className="bg-dark text-white">
+		<Card
+			className={`shadow-sm h-100 d-flex flex-column ${isExpanded ? 'position-fixed top-0 start-0 w-100 h-100 z-3' : ''}`}
+			style={{
+				marginTop: isExpanded ? 75 : 0,
+				maxHeight: window.innerHeight - 100,
+				transition: 'all 0.3s ease',
+			}}
+		>
+			<Card.Header className="bg-dark text-white d-flex justify-content-between align-items-center">
 				<h5 className="mb-0">Game Chat</h5>
+				<Button
+					variant="link"
+					className="text-white p-0"
+					onClick={() => setIsExpanded(!isExpanded)}
+					title={isExpanded ? 'Collapse' : 'Expand'}
+				>
+					{isExpanded ? <LuShrink size={20} /> : <LuExpand size={20} />}
+				</Button>
 			</Card.Header>
-			<Card.Body className="d-flex flex-column p-0">
-				<div className="flex-grow-1 overflow-auto p-3">
+			<Card.Body className="p-0 flex-grow-1 d-flex flex-column overflow-hidden">
+				<div className="flex-grow-1 overflow-y-auto p-3" style={{ minHeight: 0 }}>
 					<Stack gap={2}>
 						{messages.map((msg) => (
 							<div
@@ -52,7 +77,7 @@ export const AIChatInterface: React.FC = () => {
 									style={{ maxWidth: '75%' }}
 								>
 									<div className="small text-opacity-75 mb-1">
-										{msg.role === 'assistant' ? 'DM' : 'You'}
+										{msg.role === 'assistant' ? 'DM' : userCharacter?.name || 'You'}
 									</div>
 									{msg.content}
 								</div>
@@ -76,12 +101,12 @@ export const AIChatInterface: React.FC = () => {
 						<Form.Control
 							value={input}
 							onChange={handleInputChange}
-							placeholder="Type your message..."
-							disabled={isLoading || !currentCampaign}
+							placeholder={userCharacter ? `Speak as ${userCharacter.name}...` : 'Type your message...'}
+							disabled={isLoading || !currentCampaign || !userCharacter}
 						/>
 						<Button
 							type="submit"
-							disabled={isLoading || !input.trim() || !currentCampaign}
+							disabled={isLoading || !input.trim() || !currentCampaign || !userCharacter}
 							variant="primary"
 						>
 							<LuSend />
@@ -90,6 +115,11 @@ export const AIChatInterface: React.FC = () => {
 					{!currentCampaign && (
 						<small className="text-muted mt-2 d-block">
 							Load a campaign to start chatting with the DM
+						</small>
+					)}
+					{currentCampaign && !userCharacter && (
+						<small className="text-muted mt-2 d-block">
+							Add a player character to the campaign to start chatting
 						</small>
 					)}
 				</Form>
