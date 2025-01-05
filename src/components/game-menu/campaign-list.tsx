@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
 	Stack,
 	Card,
@@ -7,14 +7,24 @@ import {
 	Row,
 	Col,
 	ButtonGroup,
+	Modal,
 } from 'react-bootstrap';
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
-import { LuCalendar, LuUsers } from 'react-icons/lu';
+import { Campaign } from '@/schemas/menu';
+import { LuCalendar, LuUsers, LuTrash2 } from 'react-icons/lu';
 
-export const CampaignList: React.FC = () => {
-	const { campaigns, loadCampaign, currentCampaign, exitCampaign } = useGameStore();
+export const CampaignList: React.FC<{ onCampaignSelect: (campaign: Campaign) => void }> = ({ onCampaignSelect }) => {
+	const { campaigns, loadCampaign, currentCampaign, deleteCampaign } = useGameStore();
 	const { getCharactersByIds } = useCharacterStore();
+	const [campaignToDelete, setCampaignToDelete] = useState<Campaign | null>(null);
+
+	const handleDelete = () => {
+		if (campaignToDelete) {
+			deleteCampaign(campaignToDelete.id);
+			setCampaignToDelete(null);
+		}
+	};
 
 	if (campaigns.length === 0) {
 		return (
@@ -77,18 +87,31 @@ export const CampaignList: React.FC = () => {
 										<Button
 											variant="outline-danger"
 											size="sm"
-											onClick={exitCampaign}
+											onClick={() => setCampaignToDelete(campaign)}
 										>
 											Exit Campaign
 										</Button>
 									) : (
-										<Button
-											variant="primary"
-											size="sm"
-											onClick={() => loadCampaign(campaign.id)}
-										>
-											Load Campaign
-										</Button>
+										<>
+											<Button
+												className="me-2"
+												variant="primary"
+												size="sm"
+												onClick={() => {
+													loadCampaign(campaign.id);
+													onCampaignSelect(campaign);
+												}}
+											>
+												Load Campaign
+											</Button>
+											<Button
+												variant="outline-danger"
+												size="sm"
+												onClick={() => setCampaignToDelete(campaign)}
+											>
+												<LuTrash2 />
+											</Button>
+										</>
 									)}
 								</ButtonGroup>
 							</Stack>
@@ -96,6 +119,28 @@ export const CampaignList: React.FC = () => {
 					</Card>
 				);
 			})}
+
+			<Modal
+				show={!!campaignToDelete}
+				onHide={() => setCampaignToDelete(null)}
+				centered
+				className="modal-blur"
+			>
+				<Modal.Header closeButton>
+					<Modal.Title>Delete Campaign</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					Are you sure you want to delete "{campaignToDelete?.name}"? This action cannot be undone.
+				</Modal.Body>
+				<Modal.Footer>
+					<Button variant="secondary" onClick={() => setCampaignToDelete(null)}>
+						Cancel
+					</Button>
+					<Button variant="danger" onClick={handleDelete}>
+						Delete Campaign
+					</Button>
+				</Modal.Footer>
+			</Modal>
 		</Stack>
 	);
 };

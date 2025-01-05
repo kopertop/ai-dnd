@@ -10,6 +10,7 @@ interface GameStore extends GameState {
 	createCampaign: (campaign: Omit<Campaign, 'id' | 'createdAt' | 'lastPlayed'>) => void;
 	loadCampaign: (id: string) => void;
 	updateCampaign: (id: string, updates: Partial<Campaign>) => void;
+	deleteCampaign: (id: string) => void;
 	exitCampaign: () => void;
 	syncWithRemote: () => Promise<void>;
 }
@@ -75,6 +76,14 @@ export const useGameStore = create<GameStore>()(
 				if (get().currentCampaign?.id === id) {
 					set({ currentCampaign: get().campaigns.find((c) => c.id === id) });
 				}
+				queueSync();
+			},
+
+			deleteCampaign: (id) => {
+				set((state) => ({
+					campaigns: state.campaigns.filter((c) => c.id !== id),
+					currentCampaign: state.currentCampaign?.id === id ? null : state.currentCampaign,
+				}));
 				queueSync();
 			},
 

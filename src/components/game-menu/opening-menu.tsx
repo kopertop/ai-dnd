@@ -7,6 +7,7 @@ import {
 } from 'react-bootstrap';
 import { CreateCampaign } from './create-campaign';
 import { LoadCampaign } from './load-campaign';
+import { CampaignList } from './campaign-list';
 
 export const OpeningMenu: React.FC = () => {
 	const [showCreate, setShowCreate] = React.useState(false);
@@ -67,7 +68,7 @@ export const OpeningMenu: React.FC = () => {
 					<Modal.Title>Load Campaign</Modal.Title>
 				</Modal.Header>
 				<Modal.Body className="p-4">
-					<LoadCampaign onComplete={() => setShowLoad(false)} />
+					<CampaignList onCampaignSelect={() => setShowLoad(false)} />
 				</Modal.Body>
 			</Modal>
 		</Card>
