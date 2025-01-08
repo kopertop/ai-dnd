@@ -30,7 +30,10 @@ interface GameStore extends GameState {
   rollInitiative: (characterId: string) => number;
 }
 
-export const createStore = () => create<GameStore>((set, get) => ({
+type SetState = (fn: (state: GameStore) => Partial<GameStore>) => void;
+type GetState = () => GameStore;
+
+const createGameStore = (set: SetState, get: GetState) => ({
   // Initial state
   campaigns: [],
   currentCampaign: null,
@@ -51,6 +54,7 @@ export const createStore = () => create<GameStore>((set, get) => ({
       lastPlayed: Date.now(),
     };
     set((state) => ({
+      ...state,
       campaigns: [...state.campaigns, campaign],
     }));
     return campaign;
@@ -67,13 +71,14 @@ export const createStore = () => create<GameStore>((set, get) => ({
       controlType: campaign.characters[char.id] || 'user'
     }));
 
-    set({
+    set((state) => ({
+      ...state,
       currentCampaign: campaign,
       characters: campaignCharacters,
       currentTurn: campaignCharacters[0]?.id || '',
       gameMap: generateMap(),
       messages: [],
-    });
+    }));
   },
 
   updateCampaign: (id, updates) => {
@@ -95,7 +100,10 @@ export const createStore = () => create<GameStore>((set, get) => ({
   },
 
   exitCampaign: () => {
-    set({ currentCampaign: null });
+    set((state) => ({
+      ...state,
+      currentCampaign: null
+    }));
   },
 
   // Encounter management
@@ -117,19 +125,26 @@ export const createStore = () => create<GameStore>((set, get) => ({
       actionHistory: [],
     };
 
-    set({ currentEncounter: encounter });
+    set((state) => ({
+      ...state,
+      currentEncounter: encounter
+    }));
   },
 
   enterEncounter: () => {
     if (!get().currentEncounter) return;
-    set({ isInEncounter: true });
+    set((state) => ({
+      ...state,
+      isInEncounter: true
+    }));
   },
 
   exitEncounter: () => {
-    set({ 
+    set((state) => ({ 
+      ...state,
       isInEncounter: false,
       currentEncounter: null,
-    });
+    }));
   },
 
   performAction: (action) => {
@@ -137,6 +152,7 @@ export const createStore = () => create<GameStore>((set, get) => ({
     if (!encounter) return;
 
     set(state => ({
+      ...state,
       currentEncounter: {
         ...encounter,
         actionHistory: [...encounter.actionHistory, action],
@@ -151,13 +167,14 @@ export const createStore = () => create<GameStore>((set, get) => ({
     const nextTurnIndex = (encounter.currentTurn + 1) % encounter.initiativeOrder.length;
     const newRound = nextTurnIndex === 0 ? encounter.round + 1 : encounter.round;
 
-    set({
+    set(state => ({
+      ...state,
       currentEncounter: {
         ...encounter,
         currentTurn: nextTurnIndex,
         round: newRound,
       }
-    });
+    }));
   },
 
   applyCondition: (characterId, condition) => {
@@ -169,12 +186,13 @@ export const createStore = () => create<GameStore>((set, get) => ({
       [characterId]: [...(encounter.conditions[characterId] || []), condition],
     };
 
-    set({
+    set(state => ({
+      ...state,
       currentEncounter: {
         ...encounter,
         conditions,
       }
-    });
+    }));
   },
 
   removeCondition: (characterId, condition) => {
@@ -187,12 +205,13 @@ export const createStore = () => create<GameStore>((set, get) => ({
       [characterId]: characterConditions.filter(c => c !== condition),
     };
 
-    set({
+    set(state => ({
+      ...state,
       currentEncounter: {
         ...encounter,
         conditions,
       }
-    });
+    }));
   },
 
   rollInitiative: (characterId) => {
@@ -203,16 +222,23 @@ export const createStore = () => create<GameStore>((set, get) => ({
     const dexMod = Math.floor((character.abilities.dexterity - 10) / 2);
     return Math.floor(Math.random() * 20) + 1 + dexMod;
   },
-}));
+});
 
-// Create a persisted version for production use
-export const useGameStore = process.env.NODE_ENV === 'test'
-  ? createStore()
-  : create(
-      persist(
-        (set, get) => createStore()(set, get),
-        {
-          name: 'dnd-game-storage',
-        }
-      )
-    );
+// Create the store with middleware
+const createStoreWithMiddleware = () => {
+  if (process.env.NODE_ENV === 'test') {
+    return create<GameStore>(createGameStore);
+  }
+
+  return create<GameStore>(
+    persist(
+      createGameStore,
+      {
+        name: 'dnd-game-storage',
+      }
+    )
+  );
+};
+
+// Export the store hook
+export const useGameStore = createStoreWithMiddleware();
