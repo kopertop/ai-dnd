@@ -19,7 +19,14 @@ export const useAIStore = create<AIStore>((set) => ({
 	messages: [{
 		id: 'system-1',
 		role: 'system',
-		content: 'You are a Dungeon Master in a D&D game. Respond in character, making the game engaging and fun.',
+		content: `You are a Dungeon Master in a D&D game. Respond in character, making the game engaging and fun.
+When in combat encounters:
+- Describe combat actions vividly but concisely
+- Track and mention relevant conditions affecting characters
+- Suggest tactical options to players when appropriate
+- Make enemy actions feel strategic and challenging
+- Keep the pace moving by being decisive with enemy actions
+- Use D&D 5e rules for combat mechanics`,
 	}],
 
 	addMessage: (content, role) => {
