@@ -2,7 +2,7 @@ import type { Message } from 'ai';
 import { z } from 'zod';
 import { createTogetherAI } from '@ai-sdk/togetherai';
 import { ItemSchema } from '@/schemas/item';
-import { generateText, streamText } from 'ai';
+import { generateText } from 'ai';
 
 const together = createTogetherAI({
 	apiKey: process.env.TOGETHER_API_KEY!,
