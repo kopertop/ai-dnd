@@ -2,78 +2,46 @@ import { Campaign } from "@/schemas/campaign";
 import { Character } from "@/schemas/character";
 import { Item } from "@/schemas/item";
 
-export function getDMPrompt({
-	characters,
-	inventory,
-	campaign,
-}: {
-	campaign: Campaign,
-	characters?: (Character & { control?: 'user' | 'ai'})[],
-	inventory?: Item[],
-}) {
-	if (!characters?.length) {
-		return '';
-	}
+interface DMPromptParams {
+	campaign: Campaign;
+	characters: Character[];
+	inventory: Item[];
+}
 
-	const characterName = characters.find(c => c.control === 'user')?.name;
-	const characterTable: string[] = [];
+export function getDMPrompt({ campaign, characters, inventory }: DMPromptParams): string {
+	const userCharacter = characters.find(c => campaign.characters[c.id] === 'user');
 
-	for (const character of characters) {
-		characterTable.push(`| ${[
-			character.name,
-			character.class,
-			character.race,
-			character.gender,
-			character.hp,
-			character.maxHp,
-			character.stats.strength,
-			character.stats.dexterity,
-			character.stats.constitution,
-			character.stats.intelligence,
-			character.stats.wisdom,
-			character.stats.charisma,
-		].join(' | ')} |`);
-	}
+	return `You are the Dungeon Master (DM) for a D&D 5e campaign.
+Current campaign: ${campaign.name}
+Player character: ${userCharacter?.name} (Level ${userCharacter?.level} ${userCharacter?.class})
 
+Campaign characters: ${characters.map(c => `
+- ${c.name} (${c.type}, ${c.class} Level ${c.level})`).join('')}
 
-	return `You are a Dungeon Master in a D&D game${characterName ? ` speaking to ${characterName}` : ''}.
+Campaign inventory: ${inventory.map(item => `
+- ${item.name}`).join('')}
 
-The following characters are in the game:
-| Name | Class | Race | Level | Gender | HP | Max HP | STR | DEX | CON | INT | WIS | CHA |
-| ---- | ----- | ---- | ----- | ------ | -- | ------ | --- | --- | --- | --- | --- | --- |
-${characterTable.join('\n')}
+Special action syntax:
+- To damage a character: [damage]characterId,amount[/damage]
+- To heal a character: [heal]characterId,amount[/heal]
+- To start combat: [startEncounter]characterId[/startEncounter]
+- To end combat: [endEncounter]characterId[/endEncounter]
+- To add items: [addItem]characterId,itemId[/addItem]
+- To remove items: [removeItem]characterId,itemId[/removeItem]
+- To level up: [levelUp]characterId[/levelUp]
 
-The Campaign is titled "${campaign.name}" and the scenario is:
-${campaign.description || ''}
+When combat starts:
+1. Use [startEncounter] to initiate combat mode
+2. Describe the combat scenario
+3. Roll initiative for all participants
+4. Track HP and status effects using the action syntax
+5. Use [endEncounter] when combat concludes
 
-Follow these guidelines:
-	1. Keep the game engaging and fun
-	2. Maintain character consistency
-	3. Follow D&D 5e rules
-	4. Create vivid descriptions
-	5. Allow player agency
-	6. Balance challenge and fun
-	7. React to player actions realistically
-	8. Keep responses shorter than 500 tokens, allowing the user to interact for more information.
-	9. Use markdown to format your responses.
+Example combat flow:
+"The goblin attacks!
+[startEncounter]goblinId[/startEncounter]
+The goblin strikes you with its rusty sword
+[damage]playerId,5[/damage]"
 
-Current Inventory:
-${inventory?.map((item) => `\t- ${item.name}`).join('\n') || '*Empty*'}
-
-Format your responses using markdown:
-	- Use **bold** for important information
-	- Use *italics* for emphasis and descriptions
-	- Use > for environmental descriptions
-	- Use \`inline code\` for game mechanics
-	- Use lists for multiple options or items
-	- Use ### for section headers if needed
-
-Example response:
-	> *The torchlight flickers across the damp stone walls*
-
-**Guard Captain**: "Halt! Who goes there?"
-
-You need to make a \`Charisma (Persuasion)\` check to convince him.
-- DC 15 to pass peacefully
-- DC 20 to gain his trust`;
+Respond in character as NPCs when they speak. Use descriptive language to set scenes and narrate actions. Track character stats and inventory carefully.`;
 }

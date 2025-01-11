@@ -19,12 +19,15 @@ import { InventoryList } from './game-menu/inventory-list';
 import { OpeningMenu } from './game-menu/opening-menu';
 import { AddCharacters } from './game-menu/add-characters';
 import { generateInventory } from '@/utils/campaign-inventory';
+import { EncounterInterface } from './encounter-interface';
+import { useEncounterStore } from '@/stores/encounter-store';
 
 export const GameInterface: React.FC = () => {
 	const { currentCampaign, exitCampaign, updateCampaign } = useGameStore();
 	const [showCreateCharacter, setShowCreateCharacter] = useState(false);
 	const [showCharacterList, setShowCharacterList] = useState(false);
 	const [isGeneratingInventory, setIsGeneratingInventory] = useState(false);
+	const { activeEncounter } = useEncounterStore();
 
 	useEffect(() => {
 		if (currentCampaign && !currentCampaign.inventory?.length && !isGeneratingInventory) {
@@ -34,7 +37,7 @@ export const GameInterface: React.FC = () => {
 				setIsGeneratingInventory(false);
 			});
 		}
-	}, [currentCampaign, updateCampaign]);
+	}, [currentCampaign, updateCampaign, isGeneratingInventory]);
 
 	// If no campaign is loaded, show the opening menu
 	if (!currentCampaign) {
@@ -89,7 +92,11 @@ export const GameInterface: React.FC = () => {
 						</Stack>
 					</Col>
 					<Col xl={9} lg={8} md={12}>
-						<AIChatInterface />
+						{activeEncounter ? (
+							<EncounterInterface />
+						) : (
+							<AIChatInterface />
+						)}
 					</Col>
 				</Row>
 			</Container>

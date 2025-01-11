@@ -1,9 +1,10 @@
 import { Character } from '@/schemas/character';
 import { Campaign } from '@/schemas/campaign';
 import { Item } from '@/schemas/item';
+import { useEncounterStore } from '@/stores/encounter-store';
 
 export type ChatAction = {
-	type: 'damage' | 'heal' | 'equip' | 'unequip' | 'addItem' | 'removeItem' | 'levelUp';
+	type: 'damage' | 'heal' | 'equip' | 'unequip' | 'addItem' | 'removeItem' | 'levelUp' | 'startEncounter' | 'endEncounter';
 	targetId: string;
 	value?: number;
 	item?: Item;
@@ -91,6 +92,14 @@ export function handleChatAction(
 				maxHp: target.maxHp + 5, // Simple HP increase, adjust as needed
 				hp: target.maxHp + 5,
 			});
+			break;
+
+		case 'startEncounter':
+			useEncounterStore.getState().startEncounter(characters);
+			break;
+
+		case 'endEncounter':
+			useEncounterStore.getState().endEncounter();
 			break;
 
 		default:

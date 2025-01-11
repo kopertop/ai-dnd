@@ -14,24 +14,25 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { getDMPrompt } from '@/prompts/dm';
 import { handleChatAction, ChatAction } from '@/utils/chat-actions';
+import { Character } from '@/schemas/character';
 
 export const AIChatInterface: React.FC = () => {
 	const [isExpanded, setIsExpanded] = useState(false);
 	const { currentCampaign, updateCampaign } = useGameStore();
 	const { getCharactersByIds, updateCharacter } = useCharacterStore();
-
-	if (!currentCampaign) {
-		return <div>No campaign found</div>;
-	}
+	const [userCharacter, setUserCharacter] = useState<Character | null>(null);
 
 	// Get the user's active character
-	const userCharacterId = Object.entries(currentCampaign.characters).find(([_, type]) => type === 'user')?.[0]
+	useEffect(() => {
+		if (!currentCampaign) return;
+		const userCharacterId = Object.entries(currentCampaign.characters).find(([_, type]) => type === 'user')?.[0]
 
-	const allCharacters = getCharactersByIds(Object.keys(currentCampaign.characters || {})).map((c) => ({
-		...c,
-		control: currentCampaign?.characters[c.id],
-	}));
-	const userCharacter = allCharacters.find(c => c.id === userCharacterId);
+		const allCharacters = getCharactersByIds(Object.keys(currentCampaign.characters || {})).map((c) => ({
+			...c,
+			control: currentCampaign?.characters[c.id],
+		}));
+		setUserCharacter(allCharacters.find(c => c.id === userCharacterId) || null);
+	}, [currentCampaign, getCharactersByIds]);
 
 	const {
 		append,
@@ -62,14 +63,19 @@ export const AIChatInterface: React.FC = () => {
 		onFinish: (message) => {
 			// Scan for actions in the message
 			if (message.content.includes('[') && message.content.includes(']')) {
-				const actions = message.content.matchAll(/\[(?<type>[^\]]+)\](?<value>[^\]]+)\[\/([^\]]+)\]/g);
-				for (const action of actions || []) {
-					console.log('action', action);
+				const actionPattern = /\[([^\]]+)\]([^[]+)\[\/\1\]/g;
+				const matches = message.content.matchAll(actionPattern);
+
+				for (const match of matches) {
+					console.log('ACTION', match);
+					const [, type, value] = match;
+					const [targetId, amount] = value.split(',');
+
 					handleChatAction(
 						{
-							type: action[0] as ChatAction['type'],
-							targetId: action[1],
-							value: Number(action[2]),
+							type: type as ChatAction['type'],
+							targetId,
+							value: amount ? Number(amount) : undefined,
 						},
 						currentCampaign!,
 						allCharacters,
@@ -79,14 +85,11 @@ export const AIChatInterface: React.FC = () => {
 				}
 			}
 
-			/*
 			if (currentCampaign?.id) {
-				console.log('Finished, updating campaign with new messages', [...messages, message]);
 				updateCampaign(currentCampaign.id, {
 					messages: [...messages, message],
 				});
 			}
-			*/
 		},
 		body: {
 			characterName: userCharacter?.name,
@@ -94,6 +97,7 @@ export const AIChatInterface: React.FC = () => {
 			inventory: currentCampaign?.inventory,
 		},
 	});
+
 	useEffect(() => {
 		if (!currentCampaign?.messages?.filter(msg => msg.role !== 'system').length) {
 			console.log('No messages found, starting new campaign');
@@ -105,14 +109,20 @@ export const AIChatInterface: React.FC = () => {
 	}, [currentCampaign]);
 
 	useEffect(() => {
-		console.log('messages', messages);
 		if (currentCampaign?.id && messages?.length && !isLoading) {
-			console.log('Updating campaign with new messages', messages);
 			updateCampaign(currentCampaign.id, {
 				messages,
 			});
 		}
 	}, [messages, isLoading]);
+
+	if (!currentCampaign) {
+		return <div>No campaign found</div>;
+	}
+
+	if (!userCharacter) {
+		return <div>No user character found</div>;
+	}
 
 	return (
 		<Card
