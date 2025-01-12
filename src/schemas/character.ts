@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { PositionSchema } from './base';
 import { ItemSchema } from './item';
+import { SpellSchema } from './spells';
 
 export const CharacterStatsSchema = z.object({
 	strength: z.number().min(1).max(20),
@@ -38,6 +39,7 @@ export const CharacterSchema = z.object({
 	stats: CharacterStatsSchema,
 	startingPoints: z.number().min(0).default(10),
 	equipment: CharacterEquipmentSchema,
+	spells: z.array(SpellSchema).optional(),
 });
 
 export type CharacterStats = z.infer<typeof CharacterStatsSchema>;

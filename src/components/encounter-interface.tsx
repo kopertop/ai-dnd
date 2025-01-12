@@ -10,7 +10,7 @@ import {
 import { GameMap } from './game-map';
 import { useGameStore } from '@/stores/game-store';
 import { useCharacterStore } from '@/stores/character-store';
-import { LuSword, LuBackpack, LuWand2, LuMove } from 'react-icons/lu';
+import { LuSword, LuBackpack, LuWand, LuMove } from 'react-icons/lu';
 import { ActionMenu } from './encounter/action-menu';
 import { useEncounterStore } from '@/stores/encounter-store';
 import { EncounterLog } from './encounter/encounter-log';
@@ -65,7 +65,7 @@ export const EncounterInterface: React.FC = () => {
 										onClick={() => setSelectedAction('spell')}
 										title='Cast Spell'
 									>
-										<LuWand2 />
+										<LuWand />
 									</Button>
 									<Button
 										variant={selectedAction === 'move' ? 'primary' : 'outline-primary'}

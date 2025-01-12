@@ -15,24 +15,18 @@ import remarkGfm from 'remark-gfm';
 import { getDMPrompt } from '@/prompts/dm';
 import { handleChatAction, ChatAction } from '@/utils/chat-actions';
 import { Character } from '@/schemas/character';
+import { Campaign } from '@/schemas/campaign';
+import { replaceActions } from '@/utils/replace-actions';
 
-export const AIChatInterface: React.FC = () => {
+const AIChatComponent: React.FC<{
+	currentCampaign: Campaign;
+	userCharacter: Character | null;
+	allCharacters: Character[];
+}> = ({ currentCampaign, userCharacter, allCharacters }) => {
 	const [isExpanded, setIsExpanded] = useState(false);
-	const { currentCampaign, updateCampaign } = useGameStore();
-	const { getCharactersByIds, updateCharacter } = useCharacterStore();
-	const [userCharacter, setUserCharacter] = useState<Character | null>(null);
-
-	// Get the user's active character
-	useEffect(() => {
-		if (!currentCampaign) return;
-		const userCharacterId = Object.entries(currentCampaign.characters).find(([_, type]) => type === 'user')?.[0]
-
-		const allCharacters = getCharactersByIds(Object.keys(currentCampaign.characters || {})).map((c) => ({
-			...c,
-			control: currentCampaign?.characters[c.id],
-		}));
-		setUserCharacter(allCharacters.find(c => c.id === userCharacterId) || null);
-	}, [currentCampaign, getCharactersByIds]);
+	const { updateCampaign } = useGameStore();
+	const { updateCharacter } = useCharacterStore();
+	const [incompleteAction, setIncompleteAction] = useState<string | null>(null);
 
 	const {
 		append,
@@ -46,30 +40,42 @@ export const AIChatInterface: React.FC = () => {
 		error,
 	} = useChat({
 		api: '/api/chat',
-		initialMessages: currentCampaign?.messages?.length ? currentCampaign.messages : [{
-			id: 'system-1',
-			role: 'system',
-			content: getDMPrompt({
-				campaign: currentCampaign,
-				characters: allCharacters,
-				inventory: currentCampaign.inventory || [],
-			}),
-		}],
 		onResponse: (response) => {
 			if (!response.ok) {
 				throw new Error('Failed to send message');
 			}
 		},
 		onFinish: (message) => {
-			// Scan for actions in the message
-			if (message.content.includes('[') && message.content.includes(']')) {
-				const actionPattern = /\[([^\]]+)\]([^[]+)\[\/\1\]/g;
-				const matches = message.content.matchAll(actionPattern);
+			// Check if we have an incomplete action from previous message
+			let messageContent = message.content;
+			if (incompleteAction) {
+				messageContent = incompleteAction + messageContent;
+				setIncompleteAction(null);
+			}
+
+			// Check if this message ends with an incomplete action
+			if (messageContent.includes('[') &&
+				(messageContent.split('[').length > messageContent.split(']').length)) {
+				setIncompleteAction(messageContent);
+				return; // Wait for the complete message
+			}
+
+			const newMessages = [...messages, { ...message, content: messageContent }];
+
+			// Scan for actions in the complete message
+			if (messageContent.includes('[') && messageContent.includes(']')) {
+				console.log('Message content:', messageContent);
+				const actionPattern = /\[([^\]]+)\]([^[\]]+)\[\/\1\]/g;
+				const matches = Array.from(messageContent.matchAll(actionPattern));
+
+				console.log('Found matches:', matches);
 
 				for (const match of matches) {
-					console.log('ACTION', match);
-					const [, type, value] = match;
-					const [targetId, amount] = value.split(',');
+					const [fullMatch, type, value] = match;
+					console.log('Processing action:', { fullMatch, type, value });
+
+					// Split value and clean up any whitespace
+					const [targetId, amount] = value.split(',').map(s => s.trim());
 
 					handleChatAction(
 						{
@@ -78,23 +84,28 @@ export const AIChatInterface: React.FC = () => {
 							value: amount ? Number(amount) : undefined,
 						},
 						currentCampaign!,
-						allCharacters,
-						updateCampaign,
-						updateCharacter,
+							allCharacters,
+							updateCampaign,
+							updateCharacter,
 					);
 				}
 			}
 
+			// Update campaign messages
 			if (currentCampaign?.id) {
-				updateCampaign(currentCampaign.id, {
-					messages: [...messages, message],
-				});
+				setTimeout(() => {
+					updateCampaign(currentCampaign.id, {
+						messages: newMessages,
+					});
+				}, 0);
 			}
 		},
 		body: {
 			characterName: userCharacter?.name,
 			characters: allCharacters,
 			inventory: currentCampaign?.inventory,
+			stream: true,
+			maxTokens: 2000,
 		},
 	});
 
@@ -106,15 +117,7 @@ export const AIChatInterface: React.FC = () => {
 				content: '_enters the game_',
 			});
 		}
-	}, [currentCampaign]);
-
-	useEffect(() => {
-		if (currentCampaign?.id && messages?.length && !isLoading) {
-			updateCampaign(currentCampaign.id, {
-				messages,
-			});
-		}
-	}, [messages, isLoading]);
+	}, [currentCampaign, append]);
 
 	if (!currentCampaign) {
 		return <div>No campaign found</div>;
@@ -176,7 +179,7 @@ export const AIChatInterface: React.FC = () => {
 											),
 										}}
 									>
-										{msg.content}
+										{replaceActions(msg.content)}
 									</ReactMarkdown>
 								</div>
 							</div>
@@ -241,3 +244,38 @@ export const AIChatInterface: React.FC = () => {
 		</Card>
 	);
 };
+
+export const AIChatInterface: React.FC = () => {
+	const { currentCampaign } = useGameStore();
+	const { getCharactersByIds } = useCharacterStore();
+	const [userCharacter, setUserCharacter] = useState<Character | null>(null);
+	const [allCharacters, setAllCharacters] = useState<Character[]>([]);
+
+	// Get the user's active character
+	useEffect(() => {
+		if (!currentCampaign) return;
+		const userCharacterId = Object.entries(currentCampaign.characters).find(([, type]) => type === 'user')?.[0]
+
+		const currentCharacters = getCharactersByIds(Object.keys(currentCampaign.characters || {})).map((c) => ({
+			...c,
+			control: currentCampaign?.characters[c.id],
+		}));
+		setAllCharacters(currentCharacters);
+		setUserCharacter(currentCharacters.find(c => c.id === userCharacterId) || null);
+	}, [currentCampaign, getCharactersByIds]);
+
+	if (!currentCampaign) {
+		return <div>No campaign found</div>;
+	}
+
+	if (!userCharacter) {
+		return <div>No user character found</div>;
+	}
+
+
+	return <AIChatComponent
+		currentCampaign={currentCampaign}
+		userCharacter={userCharacter}
+		allCharacters={allCharacters}
+	/>
+}

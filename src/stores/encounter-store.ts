@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { Character } from '@/schemas/character';
-import { MapPosition } from '@/schemas/game';
+import { Position as MapPosition } from '@/schemas/game';
+import { EncounterInit, EncounterInitSchema } from '@/schemas/encounter';
 
 export interface Encounter {
 	id: string;
@@ -29,9 +29,26 @@ export type EncounterAction = {
 	position?: MapPosition;
 };
 
+interface EncounterState {
+	init: EncounterInit | null;
+	currentTurn: number;
+	participants: {
+		id: string;
+		type: 'player' | 'enemy';
+		position: MapPosition;
+		health: number;
+		maxHealth: number;
+	}[];
+	log: {
+		turn: number;
+		message: string;
+		timestamp: number;
+	}[];
+}
+
 interface EncounterStore {
-	activeEncounter: Encounter | null;
-	startEncounter: (participants: Character[]) => void;
+	activeEncounter: EncounterState | null;
+	startEncounter: (encounterData: EncounterInit) => void;
 	endEncounter: () => void;
 	performAction: (action: EncounterAction) => void;
 	updateParticipant: (id: string, updates: Partial<Encounter['participants'][0]>) => void;
@@ -41,27 +58,26 @@ interface EncounterStore {
 export const useEncounterStore = create<EncounterStore>((set, get) => ({
 	activeEncounter: null,
 
-	startEncounter: (participants) => {
-		const encounter: Encounter = {
-			id: crypto.randomUUID(),
-			currentTurn: 1,
-			initiative: {},
-			participants: participants.map(p => ({
-				id: p.id,
-				type: p.type as 'player' | 'enemy',
-				position: p.position || { x: 0, y: 0 },
-				health: p.stats.constitution * 2,
-				maxHealth: p.stats.constitution * 2,
-			})),
-			log: [],
-		};
-
-		// Roll initiative for all participants
-		participants.forEach(p => {
-			encounter.initiative[p.id] = Math.floor(Math.random() * 20) + 1;
-		});
-
-		set({ activeEncounter: encounter });
+	startEncounter: (encounterData) => {
+		try {
+			const parsed = EncounterInitSchema.parse(encounterData);
+			set({
+				activeEncounter: {
+					init: parsed,
+					currentTurn: 1,
+					participants: parsed.combatants.map(c => ({
+						id: c.id,
+						type: c.type,
+						position: c.position,
+						health: c.stats.hp,
+						maxHealth: c.stats.maxHp,
+					})),
+					log: [],
+				},
+			});
+		} catch (error) {
+			console.error('Invalid encounter data:', error);
+		}
 	},
 
 	endEncounter: () => {

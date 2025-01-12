@@ -13,7 +13,7 @@ export async function handleChat(messages: Message[]) {
 		model,
 		messages,
 		temperature: 0.7,
-		maxTokens: 500,
+		maxTokens: 2000,
 	});
 
 	return result.toDataStreamResponse();
